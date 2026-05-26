@@ -307,3 +307,18 @@ Actions:
 - Separate security updates from feature work unless the user explicitly wants them bundled.
 - Prefer removal over replacement, and replacement over addition.
 - Re-audit after every major framework upgrade.
+
+## 13. Scheduled Security Patch Checks
+
+The backend registers `SecurityPatchManagementService` in the cleanup module.
+It runs daily at 02:00 and executes the workspace package-manager audit command
+(`pnpm audit --json` for pnpm workspaces, otherwise `npm audit --json`). The
+service classifies findings as:
+
+- `urgent_patch` for high or critical vulnerabilities.
+- `scheduled_patch` for moderate or low vulnerabilities.
+- `none` when no vulnerable packages are reported.
+
+High and critical findings should be patched in a dedicated security update PR.
+Moderate and low findings can be grouped into the next scheduled maintenance
+window unless an advisory is exploitable in Chioma's runtime path.

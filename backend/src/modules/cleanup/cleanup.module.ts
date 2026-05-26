@@ -8,6 +8,8 @@ import { AutomatedRefactoringService } from './automated-refactoring.service';
 import { DependencyManagementService } from './dependency-management.service';
 import { TempFileCleanupService } from './temp-file-cleanup.service';
 import { DataArchivalService } from './data-archival.service';
+import { SecurityPatchManagementService } from './security-patch-management.service';
+import { DatabaseMaintenanceService } from './database-maintenance.service';
 import { TenantScreeningRequest } from '../screening/entities/tenant-screening-request.entity';
 import { TenantScreeningReport } from '../screening/entities/tenant-screening-report.entity';
 import { TenantScreeningConsent } from '../screening/entities/tenant-screening-consent.entity';
@@ -28,7 +30,13 @@ import { TenantScreeningConsent } from '../screening/entities/tenant-screening-c
     DependencyManagementService,
     TempFileCleanupService,
     DataArchivalService,
+    SecurityPatchManagementService,
+    DatabaseMaintenanceService,
   ],
-  exports: [DataArchivalService],
+  exports: [
+    DataArchivalService,
+    SecurityPatchManagementService,
+    DatabaseMaintenanceService,
+  ],
 })
 export class CleanupModule {}
