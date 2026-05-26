@@ -425,5 +425,180 @@ describe('RBAC - Role-Based Access Control', () => {
         'User not authenticated',
       );
     });
+
+    it('allows SUPER_ADMIN access when SUPER_ADMIN is in required roles', () => {
+      const context = createMockExecutionContext(
+        { id: 'super-1', role: UserRole.SUPER_ADMIN },
+        [UserRole.ADMIN, UserRole.SUPER_ADMIN],
+      );
+
+      expect(guard.canActivate(context)).toBe(true);
+    });
+
+    it('blocks USER from AGENT-only endpoints', () => {
+      const context = createMockExecutionContext(
+        { id: 'user-1', role: UserRole.USER },
+        [UserRole.AGENT],
+      );
+
+      expect(() => guard.canActivate(context)).toThrow(ForbiddenException);
+    });
+
+    it('blocks AGENT from USER-only endpoints', () => {
+      const context = createMockExecutionContext(
+        { id: 'agent-1', role: UserRole.AGENT },
+        [UserRole.USER],
+      );
+
+      expect(() => guard.canActivate(context)).toThrow(ForbiddenException);
+    });
+
+    it('allows AGENT when multiple roles include AGENT', () => {
+      const context = createMockExecutionContext(
+        { id: 'agent-1', role: UserRole.AGENT },
+        [UserRole.ADMIN, UserRole.AGENT, UserRole.USER],
+      );
+
+      expect(guard.canActivate(context)).toBe(true);
+    });
+
+    it('allows USER when multiple roles include USER', () => {
+      const context = createMockExecutionContext(
+        { id: 'user-1', role: UserRole.USER },
+        [UserRole.ADMIN, UserRole.AGENT, UserRole.USER],
+      );
+
+      expect(guard.canActivate(context)).toBe(true);
+    });
+
+    it('rejects invalid role values gracefully', () => {
+      const context = createMockExecutionContext(
+        { id: 'user-1', role: 'invalid_role' as UserRole },
+        [UserRole.ADMIN],
+      );
+
+      expect(() => guard.canActivate(context)).toThrow(ForbiddenException);
+    });
+
+    it('blocks SUPER_ADMIN from endpoints requiring ADMIN only (no SUPER_ADMIN in roles)', () => {
+      const context = createMockExecutionContext(
+        { id: 'super-1', role: UserRole.SUPER_ADMIN },
+        [UserRole.ADMIN],
+      );
+
+      expect(() => guard.canActivate(context)).toThrow(ForbiddenException);
+    });
+  });
+
+  // ─── AdminGuard Tests ───────────────────────────────────────────────────────
+  describe('AdminGuard', () => {
+    const { AdminGuard } =
+      require('./guards/admin.guard') as typeof import('./guards/admin.guard');
+    let adminGuard: import('@nestjs/common').CanActivate;
+
+    beforeEach(() => {
+      adminGuard = new AdminGuard();
+    });
+
+    function createAdminContext(user: unknown): ExecutionContext {
+      return {
+        switchToHttp: jest.fn().mockReturnValue({
+          getRequest: jest.fn().mockReturnValue({ user }),
+        }),
+        getHandler: jest.fn(),
+        getClass: jest.fn(),
+      } as unknown as ExecutionContext;
+    }
+
+    it('allows ADMIN users', () => {
+      const context = createAdminContext({ role: UserRole.ADMIN });
+
+      expect(adminGuard.canActivate(context)).toBe(true);
+    });
+
+    it('blocks SUPER_ADMIN users (AdminGuard requires ADMIN role explicitly)', () => {
+      const context = createAdminContext({ role: UserRole.SUPER_ADMIN });
+
+      expect(() => adminGuard.canActivate(context)).toThrow(ForbiddenException);
+    });
+
+    it('blocks USER from admin endpoints', () => {
+      const context = createAdminContext({ role: UserRole.USER });
+
+      expect(() => adminGuard.canActivate(context)).toThrow(ForbiddenException);
+    });
+
+    it('blocks AGENT from admin endpoints', () => {
+      const context = createAdminContext({ role: UserRole.AGENT });
+
+      expect(() => adminGuard.canActivate(context)).toThrow(ForbiddenException);
+    });
+
+    it('blocks unauthenticated requests', () => {
+      const context = createAdminContext(null);
+
+      expect(() => adminGuard.canActivate(context)).toThrow(ForbiddenException);
+    });
+  });
+
+  // ─── Auth Decorator Tests ──────────────────────────────────────────────────
+
+  describe('Auth Decorators', () => {
+    it('@Public() sets isPublic metadata to true', () => {
+      const { Public } =
+        require('./decorators/public.decorator') as typeof import('./decorators/public.decorator');
+
+      @Public()
+      class TestClass {}
+
+      const isPublic = Reflect.getMetadata('isPublic', TestClass);
+      expect(isPublic).toBe(true);
+    });
+
+    it('@Roles sets correct role metadata', () => {
+      const { Roles } =
+        require('./decorators/roles.decorator') as typeof import('./decorators/roles.decorator');
+
+      @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
+      class TestClass {}
+
+      const roles = Reflect.getMetadata('roles', TestClass);
+      expect(roles).toEqual([UserRole.ADMIN, UserRole.SUPER_ADMIN]);
+    });
+
+    it('@Roles with single role sets correct metadata', () => {
+      const { Roles } =
+        require('./decorators/roles.decorator') as typeof import('./decorators/roles.decorator');
+
+      @Roles(UserRole.ADMIN)
+      class TestClass {}
+
+      const roles = Reflect.getMetadata('roles', TestClass);
+      expect(roles).toEqual([UserRole.ADMIN]);
+    });
+  });
+
+  // ─── Multi-Layer Auth Tests ────────────────────────────────────────────────
+
+  describe('Multi-Layer Auth Protection', () => {
+    it('requires both authentication AND admin role for admin endpoints', () => {
+      const context = createMockExecutionContext(
+        { id: 'admin-1', role: UserRole.ADMIN },
+        [UserRole.ADMIN],
+      );
+
+      // RolesGuard check (would come after JwtAuthGuard)
+      expect(guard.canActivate(context)).toBe(true);
+    });
+
+    it('fails at roles check even if authenticated as non-admin', () => {
+      const context = createMockExecutionContext(
+        { id: 'user-1', role: UserRole.USER },
+        [UserRole.ADMIN],
+      );
+
+      // Would-be authenticated user (passed JwtAuthGuard) fails at RolesGuard
+      expect(() => guard.canActivate(context)).toThrow(ForbiddenException);
+    });
   });
 });
