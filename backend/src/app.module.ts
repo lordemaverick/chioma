@@ -234,6 +234,8 @@ const appLogger = new Logger('AppModule');
     ReferralModule,
     InquiriesModule,
     AnalyticsModule,
+    require('./modules/database-performance/database-performance.module')
+      .DatabasePerformanceModule,
     TransactionModule,
     ...(process.env.OPENAPI_GENERATE !== 'true' ? [RateLimitingModule] : []),
     // Maintenance module

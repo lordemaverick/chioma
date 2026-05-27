@@ -49,6 +49,7 @@
     "seed:currencies": "ts-node src/database/seeds/seed-currencies.ts",
     "seed:data": "ts-node -r tsconfig-paths/register src/database/seed-runner.ts",
     "db:consistency": "ts-node -r tsconfig-paths/register src/database/consistency-checker.ts",
+    "db:perf-report": "ts-node -r tsconfig-paths/register scripts/db-performance-report.ts",
     "db:backup": "./scripts/backup-db.sh",
     "db:restore": "./scripts/db-restore.sh",
     "seed:admin": "ts-node src/commands/index.ts admin",
