@@ -1,4 +1,4 @@
-.PHONY: help install clean lint format format-check typecheck test test-unit test-cov test-e2e build security-lint security-test all ci pre-commit
+.PHONY: help install clean lint format format-check typecheck test test-unit test-cov test-e2e test-mutation test-mutation-fast build security-lint security-test all ci pre-commit
 
 # Default target
 .DEFAULT_GOAL := help
@@ -80,6 +80,16 @@ test-e2e: ## Run end-to-end tests (requires PostgreSQL)
 	@echo "$(YELLOW)You can start services with: docker-compose up -d$(NC)"
 	pnpm run test:e2e --forceExit
 	@echo "$(GREEN)✓ E2E tests passed$(NC)"
+
+test-mutation: ## Run mutation tests (Stryker)
+	@echo "$(BLUE)Running mutation tests...$(NC)"
+	pnpm run test:mutation
+	@echo "$(GREEN)✓ Mutation tests complete$(NC)"
+
+test-mutation-fast: ## Run mutation tests on a subset of files (common utils)
+	@echo "$(BLUE)Running fast mutation tests...$(NC)"
+	pnpm run test:mutation:fast
+	@echo "$(GREEN)✓ Fast mutation tests complete$(NC)"
 
 ##@ Build
 

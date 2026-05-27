@@ -39,6 +39,7 @@ make ci           # Full CI pipeline (format, lint, typecheck, test, build)
 make pre-commit   # Lighter check before committing
 make test         # Unit tests
 make test-cov     # Tests with coverage
+make test-mutation # Mutation testing (Stryker)
 make build        # Production build
 make security-ci  # Security lint + smoke tests
 ```

@@ -62,6 +62,28 @@ Coverage should be validated in CI using `pnpm test:cov`.
 
 ---
 
+## Mutation Testing
+
+Mutation testing validates the effectiveness of your tests by introducing small changes (mutants) to your code and checking if your tests catch them.
+
+Standards:
+
+- Aim for a high mutation score in critical business logic.
+- Use mutation testing to identify "weak" tests that pass but don't actually validate behavior.
+- Run mutation tests locally before submitting major changes to core modules.
+
+Commands:
+
+- `make test-mutation`: Run full mutation test suite (slow).
+- `make test-mutation-fast`: Run mutation tests on common utilities (faster).
+- `pnpm run test:mutation -- --mutate src/path/to/file.ts`: Run on a specific file.
+
+Recommended tools:
+
+- Stryker Mutator
+
+---
+
 ## Test Organization
 
 Organize tests close to intent and scope:
