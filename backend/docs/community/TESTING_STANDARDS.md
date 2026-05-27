@@ -91,6 +91,35 @@ Avoid vague names such as `it('works')` or `it('test payment')`.
 
 ---
 
+## Database Seeding for Tests
+
+Integration and E2E tests often require pre-populated data (users, properties, etc.).
+
+### Using Test Helpers
+
+Use `seedDatabase(dataSource)` from `test-helpers.ts` to populate the database with standard test data. This is typically done in `beforeAll` or `beforeEach` hooks.
+
+```typescript
+import { seedDatabase, clearDatabase } from './test-helpers';
+
+beforeAll(async () => {
+  await clearDatabase(dataSource);
+  await seedDatabase(dataSource);
+});
+```
+
+### Manual Seeding
+
+You can manually seed the test database using the following command:
+
+```bash
+pnpm run seed:test
+```
+
+This runs `src/database/seeds/seed-test-db.ts` in the `test` environment.
+
+---
+
 ## Mocking and Stubbing
 
 Use mocks to isolate external systems while preserving meaningful behavior.

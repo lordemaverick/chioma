@@ -284,7 +284,10 @@ export class AuthService {
           ? error.message
           : 'Invalid or expired refresh token';
       this.logger.error(`Token refresh failed: ${message}`);
-      throw new AuthenticationError(ErrorCode.AUTH_TOKEN_INVALID, 'Invalid or expired refresh token');
+      throw new AuthenticationError(
+        ErrorCode.AUTH_TOKEN_INVALID,
+        'Invalid or expired refresh token',
+      );
     }
   }
 
