@@ -101,10 +101,11 @@ The API will be available at `http://localhost:5000/api` and Swagger UI at `http
 
 ## Database
 
-| Document                                                     | Summary                                 |
-| ------------------------------------------------------------ | --------------------------------------- |
-| [Database Guide](./database/DATABASE_DOCUMENTATION_GUIDE.md) | Schema, migrations, backup, recovery    |
-| [Performance Indexes](./database/PERFORMANCE_INDEXES.md)     | Index strategy for high-traffic queries |
+| Document                                                              | Summary                                        |
+| --------------------------------------------------------------------- | ---------------------------------------------- |
+| [Database Guide](./database/DATABASE_DOCUMENTATION_GUIDE.md)          | Schema, migrations, backup, recovery           |
+| [Database Schema & Relationships](./database/SCHEMA_RELATIONSHIPS.md) | Detailed entity relationships, ERDs, data flow |
+| [Performance Indexes](./database/PERFORMANCE_INDEXES.md)              | Index strategy for high-traffic queries        |
 
 Migrations live in `backend/migrations/`. Run with:
 
@@ -165,14 +166,18 @@ Chioma supports dual authentication: **JWT (email/password)** and **Stellar SEP-
 
 ## Deployment
 
-| Document                                                         | Summary                                                                 |
-| ---------------------------------------------------------------- | ----------------------------------------------------------------------- |
-| [Deployment Guide](./deployment/DEPLOYMENT.md)                   | Full runbook for dev/staging/prod deployments, monitoring, and rollback |
-| [Deployment Checklist](./deployment/DEPLOYMENT_CHECKLIST.md)     | Pre-deploy and post-deploy safety checklist                             |
-| [Production Setup](./deployment/PRODUCTION_SETUP.md)             | Environment config, secrets, health checks                              |
-| [Monitoring & Alerting](./deployment/MONITORING_AND_ALERTING.md) | Metrics collection, alert configuration, dashboards, alert response     |
-| [Backup & Recovery](./deployment/BACKUP_AND_RECOVERY.md)         | Backup strategies, verification, recovery procedures, testing           |
-| [Release Management](./deployment/RELEASE_MANAGEMENT.md)         | Release planning, versioning, release notes, deployment, rollback       |
+| Document                                                                          | Summary                                                                 |
+| --------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| [Deployment Guide](./deployment/DEPLOYMENT.md)                                    | Full runbook for dev/staging/prod deployments, monitoring, and rollback |
+| [Deployment Checklist](./deployment/DEPLOYMENT_CHECKLIST.md)                      | Pre-deploy and post-deploy safety checklist                             |
+| [Deployment Runbook](./deployment/runbooks/DEPLOYMENT_RUNBOOK.md)                 | Step-by-step deployment procedures for staging and production           |
+| [Production Setup](./deployment/PRODUCTION_SETUP.md)                              | Environment config, secrets, health checks                              |
+| [Monitoring & Alerting](./deployment/MONITORING_AND_ALERTING.md)                  | Metrics collection, alert configuration, dashboards, alert response     |
+| [Backup & Recovery](./deployment/BACKUP_AND_RECOVERY.md)                          | Backup strategies, verification, recovery procedures, testing           |
+| [Release Management](./deployment/RELEASE_MANAGEMENT.md)                          | Release planning, versioning, release notes, deployment, rollback       |
+| [CI/CD Pipeline](./deployment/CI_CD_PIPELINE.md)                                  | Pipeline architecture, stages, testing, and troubleshooting             |
+| [Database Migration Runbook](./deployment/runbooks/DATABASE_MIGRATION_RUNBOOK.md) | Migration creation, testing, deployment, and rollback                   |
+| [Incident Response Runbook](./deployment/runbooks/INCIDENT_RESPONSE_RUNBOOK.md)   | Incident detection, containment, remediation, and recovery              |
 
 Docker Compose files:
 
@@ -205,12 +210,17 @@ The platform uses structured JSON logging with correlation IDs, sensitive data s
 
 ## Security
 
-| Document                                                                   | Summary                                   |
-| -------------------------------------------------------------------------- | ----------------------------------------- |
-| [Encryption](./encryption.md)                                              | Field-level encryption for sensitive data |
-| [Security Policies](./security/SECURITY_POLICIES_AND_STANDARDS.md)         | Backend security controls and procedures  |
-| [Authorization Guide](./security/AUTHORIZATION_DOCUMENTATION.md)           | RBAC, permissions, and access control     |
-| [Tenant Screening Compliance](./compliance/TENANT_SCREENING_COMPLIANCE.md) | FCRA / compliance notes                   |
+| Document                                                                   | Summary                                             |
+| -------------------------------------------------------------------------- | --------------------------------------------------- |
+| [Encryption](./encryption.md)                                              | Field-level encryption for sensitive data           |
+| [Security Policies](./security/SECURITY_POLICIES_AND_STANDARDS.md)         | Backend security controls and procedures            |
+| [Security Best Practices](./security/SECURITY_BEST_PRACTICES.md)           | Development and operational security best practices |
+| [Security Audit](./security/SECURITY_AUDIT.md)                             | Audit findings, authorization patterns, validation  |
+| [Authorization Guide](./security/AUTHORIZATION_DOCUMENTATION.md)           | RBAC, permissions, and access control               |
+| [Secrets Management](./security/SECRETS_MANAGEMENT.md)                     | Secret storage, rotation, and recovery              |
+| [Audit Logging](./security/AUDIT_LOGGING.md)                               | Audit event standards, retention, and analysis      |
+| [Vulnerability Management](./security/VULNERABILITY_MANAGEMENT.md)         | Vulnerability lifecycle, disclosure, and patching   |
+| [Tenant Screening Compliance](./compliance/TENANT_SCREENING_COMPLIANCE.md) | FCRA / compliance notes                             |
 
 Security features active in every request:
 
@@ -228,6 +238,8 @@ Security features active in every request:
 | Document                                            | Summary                                                        |
 | --------------------------------------------------- | -------------------------------------------------------------- |
 | [Dependency Management](./DEPENDENCY_MANAGEMENT.md) | Package management, version pinning, audits, updates, security |
+
+Automated dependency updates are configured via Dependabot in `.github/dependabot.yml`, covering pnpm (root, backend, frontend), Docker, and GitHub Actions dependencies. Updates are checked weekly and grouped by ecosystem/domain for reviewable PRs.
 
 ---
 
