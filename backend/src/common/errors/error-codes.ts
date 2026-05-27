@@ -203,7 +203,8 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
   // Resilience & Degradation
   [ErrorCode.BULKHEAD_CAPACITY_EXCEEDED]:
     'Service is at capacity. Please try again shortly',
-  [ErrorCode.SERVICE_DEGRADED]: 'Service is currently running in a degraded state',
+  [ErrorCode.SERVICE_DEGRADED]:
+    'Service is currently running in a degraded state',
   [ErrorCode.FEATURE_DISABLED]:
     'This feature is temporarily unavailable due to degraded service',
 
