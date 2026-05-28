@@ -24,11 +24,15 @@ describe('MetricsService', () => {
 
   describe('HTTP metrics', () => {
     it('recordHttpRequest does not throw', () => {
-      expect(() => service.recordHttpRequest('GET', '/api/test', 200)).not.toThrow();
+      expect(() =>
+        service.recordHttpRequest('GET', '/api/test', 200),
+      ).not.toThrow();
     });
 
     it('recordHttpDuration does not throw', () => {
-      expect(() => service.recordHttpDuration('GET', '/api/test', 200, 42)).not.toThrow();
+      expect(() =>
+        service.recordHttpDuration('GET', '/api/test', 200, 42),
+      ).not.toThrow();
     });
 
     it('getMetrics includes http_request_duration_ms histogram', async () => {
@@ -52,15 +56,21 @@ describe('MetricsService', () => {
 
   describe('Blockchain metrics', () => {
     it('recordBlockchainTransaction does not throw', () => {
-      expect(() => service.recordBlockchainTransaction('payment', 'success')).not.toThrow();
+      expect(() =>
+        service.recordBlockchainTransaction('payment', 'success'),
+      ).not.toThrow();
     });
 
     it('recordBlockchainFailure does not throw', () => {
-      expect(() => service.recordBlockchainFailure('payment', 'timeout')).not.toThrow();
+      expect(() =>
+        service.recordBlockchainFailure('payment', 'timeout'),
+      ).not.toThrow();
     });
 
     it('recordBlockchainDuration does not throw', () => {
-      expect(() => service.recordBlockchainDuration('payment', 2500)).not.toThrow();
+      expect(() =>
+        service.recordBlockchainDuration('payment', 2500),
+      ).not.toThrow();
     });
   });
 
@@ -84,7 +94,9 @@ describe('MetricsService', () => {
     });
 
     it('recordDispute does not throw', () => {
-      expect(() => service.recordDispute('security_deposit', 'open')).not.toThrow();
+      expect(() =>
+        service.recordDispute('security_deposit', 'open'),
+      ).not.toThrow();
     });
   });
 });

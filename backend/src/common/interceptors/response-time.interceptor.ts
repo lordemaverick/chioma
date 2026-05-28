@@ -16,9 +16,7 @@ import {
 export class ResponseTimeInterceptor implements NestInterceptor {
   private readonly logger = new Logger(ResponseTimeInterceptor.name);
 
-  constructor(
-    private readonly performanceMonitor: PerformanceMonitorService,
-  ) {}
+  constructor(private readonly performanceMonitor: PerformanceMonitorService) {}
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     if (process.env.RESPONSE_TIME_ENABLED === 'false') {
@@ -31,13 +29,17 @@ export class ResponseTimeInterceptor implements NestInterceptor {
     // startTime is stamped by the raw Express middleware registered in main.ts
     // (before any NestJS processing, so 401/403 rejections are also measured).
     // Fall back to now() only if the middleware was somehow skipped.
-    const startTime: number = (req as any)._startTime ?? Date.now();
+    const startTime: number = req._startTime ?? Date.now();
 
     return next.handle().pipe(
       tap({
         next: () => this.record(req, res.statusCode, startTime),
         error: (err: unknown) =>
-          this.record(req, (err as { status?: number })?.status ?? 500, startTime),
+          this.record(
+            req,
+            (err as { status?: number })?.status ?? 500,
+            startTime,
+          ),
       }),
     );
   }
