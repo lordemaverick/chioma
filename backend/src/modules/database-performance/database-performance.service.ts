@@ -105,14 +105,104 @@ export class DatabasePerformanceService {
     );
   }
 
+  async getUnusedIndexes(minScans = 10, minSizeBytes = 10 * 1024 * 1024) {
+    return this.dataSource.query(
+      `
+      SELECT
+        schemaname,
+        tablename,
+        indexname,
+        idx_scan,
+        pg_size_pretty(pg_relation_size(indexrelid)) as index_size,
+        pg_relation_size(indexrelid) as index_size_bytes
+      FROM pg_stat_user_indexes
+      WHERE schemaname = 'public'
+        AND idx_scan < $1
+        AND pg_relation_size(indexrelid) > $2
+      ORDER BY pg_relation_size(indexrelid) DESC
+    `,
+      [minScans, minSizeBytes],
+    );
+  }
+
+  async getDuplicateIndexCandidates() {
+    return this.dataSource.query(`
+      SELECT
+        tablename,
+        indexname,
+        pg_size_pretty(pg_relation_size(indexrelid)) as index_size,
+        pg_relation_size(indexrelid) as index_size_bytes,
+        indexdef
+      FROM pg_indexes
+      WHERE schemaname = 'public'
+      ORDER BY tablename, indexname
+    `);
+  }
+
+  async getIndexRecommendations() {
+    const [indexUsage, indexSizes, tableSizes, unused] = await Promise.all([
+      this.getIndexUsage(),
+      this.getIndexSizes(),
+      this.getTableSizes(),
+      this.getUnusedIndexes(),
+    ]);
+
+    return {
+      generatedAt: new Date().toISOString(),
+      summary: {
+        totalIndexes: indexUsage.length as number,
+        totalIndexSize: (indexSizes as any[]).reduce(
+          (sum: number, idx: any) => sum + Number(idx.index_size_bytes || 0),
+          0,
+        ),
+        unusedIndexes: unused.length as number,
+      },
+      indexUsage,
+      indexSizes,
+      tableSizes,
+      unusedIndexes: unused,
+      recommendations: this.generateIndexRecommendations(
+        tableSizes as any[],
+        unused as any[],
+      ),
+    };
+  }
+
+  private generateIndexRecommendations(
+    tableSizes: Array<{ tablename: string; index_ratio: number }>,
+    unused: any[],
+  ): string[] {
+    const recs: string[] = [];
+
+    if (unused.length > 0) {
+      recs.push(
+        `Consider dropping ${unused.length} unused or rarely-used index(es) to reduce write overhead and save disk space.`,
+      );
+    }
+
+    const highRatio = tableSizes.filter((t) => t.index_ratio > 150);
+    if (highRatio.length > 0) {
+      recs.push(
+        `${highRatio.length} table(s) have index-to-table size ratio > 150%. Review whether all indexes are necessary.`,
+      );
+    }
+
+    recs.push(
+      'Run "scripts/db-index-review.ts" for a detailed index usage analysis.',
+    );
+
+    return recs;
+  }
+
   async getPerformanceReport() {
-    const [indexUsage, indexSizes, tableSizes, slowQueries, settings] =
+    const [indexUsage, indexSizes, tableSizes, slowQueries, settings, unused] =
       await Promise.all([
         this.getIndexUsage(),
         this.getIndexSizes(),
         this.getTableSizes(),
         this.getSlowQueries(),
         this.getDatabaseSettings(),
+        this.getUnusedIndexes(),
       ]);
 
     return {
@@ -122,6 +212,7 @@ export class DatabasePerformanceService {
       tableSizes,
       slowQueries,
       settings,
+      unusedIndexes: unused,
     };
   }
 }

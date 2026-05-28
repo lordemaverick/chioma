@@ -3,10 +3,10 @@ import {
   Registry,
   Histogram,
   Counter,
+  Gauge,
   collectDefaultMetrics,
 } from 'prom-client';
 
-/** Coerce an HTTP status code into a class label: 2xx, 3xx, 4xx, 5xx, or unknown. */
 function statusClass(status: number): string {
   if (status >= 200 && status < 300) return '2xx';
   if (status >= 300 && status < 400) return '3xx';
@@ -20,14 +20,6 @@ export class MetricsService implements OnModuleInit {
   private readonly logger = new Logger(MetricsService.name);
   readonly registry = new Registry();
 
-  // ── HTTP instrumentation ────────────────────────────────────────────────
-
-  /**
-   * Histogram for request latency.
-   * Buckets cover the full range from fast (5 ms) to very slow (5 s).
-   * Uses a Histogram, NOT a Summary, so quantiles are aggregatable across
-   * multiple instances via recording rules in Prometheus/Thanos.
-   */
   private readonly httpDuration = new Histogram({
     name: 'http_request_duration_ms',
     help: 'HTTP request latency in milliseconds',
@@ -36,15 +28,12 @@ export class MetricsService implements OnModuleInit {
     registers: [this.registry],
   });
 
-  /** Counter for total HTTP requests, grouped by route + method + status_class. */
   private readonly httpRequests = new Counter({
     name: 'http_requests_total',
     help: 'Total number of HTTP requests',
     labelNames: ['route', 'method', 'status_class'] as const,
     registers: [this.registry],
   });
-
-  // ── Other existing metrics (blockchain, db, business) ──────────────────
 
   private readonly blockchainTx = new Counter({
     name: 'blockchain_transactions_total',
@@ -76,6 +65,54 @@ export class MetricsService implements OnModuleInit {
     registers: [this.registry],
   });
 
+  private readonly dbPoolActive = new Gauge({
+    name: 'database_pool_active',
+    help: 'Active database pool connections',
+    registers: [this.registry],
+  });
+
+  private readonly dbPoolIdle = new Gauge({
+    name: 'database_pool_idle',
+    help: 'Idle database pool connections',
+    registers: [this.registry],
+  });
+
+  private readonly dbPoolMax = new Gauge({
+    name: 'database_pool_max',
+    help: 'Maximum database pool connections',
+    registers: [this.registry],
+  });
+
+  private readonly dbPoolWaiting = new Gauge({
+    name: 'database_pool_waiting',
+    help: 'Waiting database pool connections',
+    registers: [this.registry],
+  });
+
+  private readonly dbSizeBytes = new Gauge({
+    name: 'database_size_bytes',
+    help: 'Database size in bytes',
+    registers: [this.registry],
+  });
+
+  private readonly dbQueryAvgTimeMs = new Gauge({
+    name: 'database_query_avg_time_ms',
+    help: 'Average database query time in milliseconds',
+    registers: [this.registry],
+  });
+
+  private readonly dbTps = new Gauge({
+    name: 'database_tps',
+    help: 'Database transactions per second',
+    registers: [this.registry],
+  });
+
+  private readonly dbCacheHitRatio = new Gauge({
+    name: 'database_cache_hit_ratio',
+    help: 'Database cache hit ratio',
+    registers: [this.registry],
+  });
+
   private readonly rentPayments = new Counter({
     name: 'rent_payments_total',
     help: 'Total rent payment attempts',
@@ -101,8 +138,6 @@ export class MetricsService implements OnModuleInit {
     collectDefaultMetrics({ register: this.registry });
     this.logger.log('MetricsService initialised with prom-client');
   }
-
-  // ── Public API (call sites unchanged) ──────────────────────────────────
 
   recordHttpRequest(method: string, route: string, status: number): void {
     this.httpRequests.inc({ route, method, status_class: statusClass(status) });
@@ -137,7 +172,28 @@ export class MetricsService implements OnModuleInit {
   }
 
   setDatabaseConnections(_count: number): void {
-    // Gauge omitted — add a prom-client Gauge here if needed.
+  }
+
+  setDatabasePoolUsage(
+    active: number,
+    idle: number,
+    max: number,
+    waiting: number,
+  ): void {
+    this.dbPoolActive.set(active);
+    this.dbPoolIdle.set(idle);
+    this.dbPoolMax.set(max);
+    this.dbPoolWaiting.set(waiting);
+  }
+
+  setDatabaseSize(bytes: number): void {
+    this.dbSizeBytes.set(bytes);
+  }
+
+  setQueryMetrics(avgTimeMs: number, tps: number, cacheHitRatio: number): void {
+    this.dbQueryAvgTimeMs.set(avgTimeMs);
+    this.dbTps.set(tps);
+    this.dbCacheHitRatio.set(cacheHitRatio);
   }
 
   recordDatabaseQuery(queryType: string, durationMs: number): void {

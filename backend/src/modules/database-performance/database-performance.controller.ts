@@ -37,4 +37,25 @@ export class DatabasePerformanceController {
   async getIndexUsage() {
     return this.performanceService.getIndexUsage();
   }
+
+  @Get('indexes/unused')
+  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  @ApiOperation({ summary: 'Get unused or rarely-used indexes' })
+  async getUnusedIndexes() {
+    return this.performanceService.getUnusedIndexes();
+  }
+
+  @Get('indexes/recommendations')
+  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  @ApiOperation({ summary: 'Get index optimization recommendations' })
+  async getIndexRecommendations() {
+    return this.performanceService.getIndexRecommendations();
+  }
+
+  @Get('indexes/duplicates')
+  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  @ApiOperation({ summary: 'Get duplicate index candidates' })
+  async getDuplicateIndexes() {
+    return this.performanceService.getDuplicateIndexCandidates();
+  }
 }
