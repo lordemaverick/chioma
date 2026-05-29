@@ -58,7 +58,11 @@ class CacheHeaderService {
    * The returned string is already quoted as per RFC 7232.
    */
   generateETag(body: Buffer): string {
-    const hash = crypto.createHash('sha256').update(body).digest('hex').slice(0, 32);
+    const hash = crypto
+      .createHash('sha256')
+      .update(body)
+      .digest('hex')
+      .slice(0, 32);
     return `"${hash}"`;
   }
 
@@ -103,9 +107,7 @@ class CacheHeaderService {
 
     // If-None-Match takes precedence over If-Modified-Since (RFC 7232 §6)
     if (ifNoneMatch !== undefined) {
-      const clientETags = ifNoneMatch
-        .split(',')
-        .map((e) => e.trim());
+      const clientETags = ifNoneMatch.split(',').map((e) => e.trim());
 
       const matched =
         clientETags.includes(resource.etag) || clientETags.includes('*');
@@ -130,10 +132,7 @@ class CacheHeaderService {
    * Invalidate a cached resource by generating a new ETag and updating
    * the Last-Modified date.
    */
-  invalidate(
-    resource: CachedResource,
-    newBody: Buffer,
-  ): CachedResource {
+  invalidate(resource: CachedResource, newBody: Buffer): CachedResource {
     return {
       body: newBody,
       etag: this.generateETag(newBody),
@@ -217,12 +216,20 @@ describe('API Caching Headers Integration Tests (#1153)', () => {
     });
 
     it('builds a must-revalidate directive', () => {
-      const header = service.buildCacheControl(['public', 'max-age=600', 'must-revalidate']);
+      const header = service.buildCacheControl([
+        'public',
+        'max-age=600',
+        'must-revalidate',
+      ]);
       expect(header).toContain('must-revalidate');
     });
 
     it('includes all directives in the produced string', () => {
-      const directives: CacheDirective[] = ['public', 'max-age=86400', 's-maxage=3600'];
+      const directives: CacheDirective[] = [
+        'public',
+        'max-age=86400',
+        's-maxage=3600',
+      ];
       const header = service.buildCacheControl(directives);
       directives.forEach((d) => expect(header).toContain(d));
     });
@@ -280,7 +287,9 @@ describe('API Caching Headers Integration Tests (#1153)', () => {
       const d = new Date('2024-03-15T12:00:00Z');
       const formatted = service.formatHttpDate(d);
       // RFC 7231 format: "Fri, 15 Mar 2024 12:00:00 GMT"
-      expect(formatted).toMatch(/\w{3}, \d{2} \w{3} \d{4} \d{2}:\d{2}:\d{2} GMT/);
+      expect(formatted).toMatch(
+        /\w{3}, \d{2} \w{3} \d{4} \d{2}:\d{2}:\d{2} GMT/,
+      );
     });
 
     it('round-trips a date through format and parse', () => {
@@ -290,7 +299,9 @@ describe('API Caching Headers Integration Tests (#1153)', () => {
 
       expect(parsed).not.toBeNull();
       // Allow 1 second tolerance for HTTP-date (1-second granularity)
-      expect(Math.abs(parsed!.getTime() - original.getTime())).toBeLessThanOrEqual(1000);
+      expect(
+        Math.abs(parsed!.getTime() - original.getTime()),
+      ).toBeLessThanOrEqual(1000);
     });
 
     it('returns null for an invalid HTTP-date string', () => {
@@ -300,14 +311,22 @@ describe('API Caching Headers Integration Tests (#1153)', () => {
 
     it('includes Last-Modified header in evaluateConditional response headers', () => {
       const resource = makeResource('body text', publicPolicy);
-      const result = service.evaluateConditional(resource, undefined, undefined);
+      const result = service.evaluateConditional(
+        resource,
+        undefined,
+        undefined,
+      );
       expect(result.headers['Last-Modified']).toBeDefined();
     });
 
     it('Last-Modified value round-trips through HTTP-date format', () => {
       const ts = new Date('2024-01-10T10:00:00Z');
       const resource = makeResource('data', publicPolicy, ts);
-      const result = service.evaluateConditional(resource, undefined, undefined);
+      const result = service.evaluateConditional(
+        resource,
+        undefined,
+        undefined,
+      );
       const parsed = service.parseHttpDate(result.headers['Last-Modified']);
       expect(parsed).not.toBeNull();
     });
@@ -319,14 +338,22 @@ describe('API Caching Headers Integration Tests (#1153)', () => {
     describe('If-None-Match', () => {
       it('returns 304 when the ETag matches exactly', () => {
         const resource = makeResource('some content', publicPolicy);
-        const result = service.evaluateConditional(resource, resource.etag, undefined);
+        const result = service.evaluateConditional(
+          resource,
+          resource.etag,
+          undefined,
+        );
         expect(result.status).toBe(304);
         expect(result.body).toBeNull();
       });
 
       it('returns 200 when the ETag does not match', () => {
         const resource = makeResource('some content', publicPolicy);
-        const result = service.evaluateConditional(resource, '"stale-etag"', undefined);
+        const result = service.evaluateConditional(
+          resource,
+          '"stale-etag"',
+          undefined,
+        );
         expect(result.status).toBe(200);
         expect(result.body).not.toBeNull();
       });
@@ -340,13 +367,21 @@ describe('API Caching Headers Integration Tests (#1153)', () => {
       it('returns 304 when ETag is among a list of ETags', () => {
         const resource = makeResource('content', publicPolicy);
         const ifNoneMatch = `"old-etag", ${resource.etag}, "another-etag"`;
-        const result = service.evaluateConditional(resource, ifNoneMatch, undefined);
+        const result = service.evaluateConditional(
+          resource,
+          ifNoneMatch,
+          undefined,
+        );
         expect(result.status).toBe(304);
       });
 
       it('always includes current ETag in 304 response headers', () => {
         const resource = makeResource('content', publicPolicy);
-        const result = service.evaluateConditional(resource, resource.etag, undefined);
+        const result = service.evaluateConditional(
+          resource,
+          resource.etag,
+          undefined,
+        );
         expect(result.headers['ETag']).toBe(resource.etag);
       });
 
@@ -387,7 +422,11 @@ describe('API Caching Headers Integration Tests (#1153)', () => {
 
       it('returns 200 for an invalid If-Modified-Since date', () => {
         const resource = makeResource('data', publicPolicy);
-        const result = service.evaluateConditional(resource, undefined, 'garbage-date');
+        const result = service.evaluateConditional(
+          resource,
+          undefined,
+          'garbage-date',
+        );
         expect(result.status).toBe(200);
       });
 
@@ -395,7 +434,11 @@ describe('API Caching Headers Integration Tests (#1153)', () => {
         const ts = new Date('2024-03-15T12:00:00Z');
         const resource = makeResource('exact', publicPolicy, ts);
         const exactDate = service.formatHttpDate(ts);
-        const result = service.evaluateConditional(resource, undefined, exactDate);
+        const result = service.evaluateConditional(
+          resource,
+          undefined,
+          exactDate,
+        );
         expect(result.status).toBe(304);
       });
     });
@@ -403,14 +446,22 @@ describe('API Caching Headers Integration Tests (#1153)', () => {
     describe('No conditional headers', () => {
       it('returns 200 with the full body when no conditional headers are sent', () => {
         const resource = makeResource('full response', publicPolicy);
-        const result = service.evaluateConditional(resource, undefined, undefined);
+        const result = service.evaluateConditional(
+          resource,
+          undefined,
+          undefined,
+        );
         expect(result.status).toBe(200);
         expect(result.body).toEqual(resource.body);
       });
 
       it('includes Cache-Control, ETag and Last-Modified in 200 headers', () => {
         const resource = makeResource('data', publicPolicy);
-        const result = service.evaluateConditional(resource, undefined, undefined);
+        const result = service.evaluateConditional(
+          resource,
+          undefined,
+          undefined,
+        );
         expect(result.headers['Cache-Control']).toBeDefined();
         expect(result.headers['ETag']).toBeDefined();
         expect(result.headers['Last-Modified']).toBeDefined();
@@ -431,7 +482,9 @@ describe('API Caching Headers Integration Tests (#1153)', () => {
       const ts = new Date('2020-01-01T00:00:00Z');
       const original = makeResource('old', publicPolicy, ts);
       const updated = service.invalidate(original, Buffer.from('new'));
-      expect(updated.lastModified.getTime()).toBeGreaterThanOrEqual(ts.getTime());
+      expect(updated.lastModified.getTime()).toBeGreaterThanOrEqual(
+        ts.getTime(),
+      );
     });
 
     it('preserves the cache policy after invalidation', () => {
@@ -455,7 +508,11 @@ describe('API Caching Headers Integration Tests (#1153)', () => {
       const original = makeResource('v1', publicPolicy);
       const updated = service.invalidate(original, Buffer.from('v2'));
 
-      const result = service.evaluateConditional(updated, updated.etag, undefined);
+      const result = service.evaluateConditional(
+        updated,
+        updated.etag,
+        undefined,
+      );
       expect(result.status).toBe(304);
     });
 

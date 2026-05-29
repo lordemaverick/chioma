@@ -135,9 +135,9 @@ describe('End-to-End Payment Flow Integration (e2e)', () => {
       const paymentId = initiateResponse.body.paymentId;
 
       // Mock blockchain failure
-      jest.spyOn(global, 'fetch').mockRejectedValueOnce(
-        new Error('Blockchain connection failed'),
-      );
+      jest
+        .spyOn(global, 'fetch')
+        .mockRejectedValueOnce(new Error('Blockchain connection failed'));
 
       const response = await request(app.getHttpServer())
         .post(`/api/payments/${paymentId}/submit`)
@@ -278,9 +278,9 @@ describe('End-to-End Payment Flow Integration (e2e)', () => {
       const paymentId = initiateResponse.body.paymentId;
 
       // Mock blockchain failure during submission
-      jest.spyOn(global, 'fetch').mockRejectedValueOnce(
-        new Error('Blockchain failure'),
-      );
+      jest
+        .spyOn(global, 'fetch')
+        .mockRejectedValueOnce(new Error('Blockchain failure'));
 
       await request(app.getHttpServer())
         .post(`/api/payments/${paymentId}/submit`)

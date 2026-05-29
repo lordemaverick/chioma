@@ -71,6 +71,7 @@ const appLogger = new Logger('AppModule');
     ...(process.env.NODE_ENV === 'test' ? [] : [SentryModule.forRoot()]),
     ConfigModule.forRoot({
       isGlobal: true,
+      envFilePath: [`.env.${process.env.NODE_ENV || 'development'}`, '.env'],
       validate: validateEnvironment,
     }),
     LoggerModule,

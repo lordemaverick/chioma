@@ -375,7 +375,9 @@ describe('AuthService', () => {
       jest.spyOn(bcrypt, 'compare').mockResolvedValue(true as never);
       mockJwtService.sign.mockReturnValueOnce('new-access-token');
       mockJwtService.sign.mockReturnValueOnce('new-refresh-token');
-      jest.spyOn(bcrypt, 'hash').mockResolvedValue('hashed-new-refresh' as never);
+      jest
+        .spyOn(bcrypt, 'hash')
+        .mockResolvedValue('hashed-new-refresh' as never);
 
       const result = await service.refreshToken(refreshTokenDto);
 

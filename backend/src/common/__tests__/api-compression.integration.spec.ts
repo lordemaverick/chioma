@@ -57,7 +57,9 @@ class CompressionService {
    * Negotiate the best encoding based on the Accept-Encoding request header.
    * Returns `null` when no supported encoding is acceptable to the client.
    */
-  negotiateEncoding(acceptEncoding: string): 'br' | 'gzip' | 'deflate' | 'identity' | null {
+  negotiateEncoding(
+    acceptEncoding: string,
+  ): 'br' | 'gzip' | 'deflate' | 'identity' | null {
     if (!acceptEncoding) return 'identity';
 
     const clientEncodings = acceptEncoding
@@ -71,7 +73,10 @@ class CompressionService {
       .map((e) => e.enc);
 
     for (const preferred of this.options.encodings) {
-      if (clientEncodings.includes(preferred) || clientEncodings.includes('*')) {
+      if (
+        clientEncodings.includes(preferred) ||
+        clientEncodings.includes('*')
+      ) {
         return preferred;
       }
     }
@@ -167,7 +172,9 @@ describe('API Compression Integration Tests (#1152)', () => {
     });
 
     it('produces valid gzip output that round-trips correctly', async () => {
-      const original = Buffer.from(JSON.stringify({ key: 'value', list: [1, 2, 3] }).repeat(100));
+      const original = Buffer.from(
+        JSON.stringify({ key: 'value', list: [1, 2, 3] }).repeat(100),
+      );
       const { data } = await service.compress(original, 'gzip');
 
       const decompressed = await gunzipAsync(data);
@@ -215,7 +222,9 @@ describe('API Compression Integration Tests (#1152)', () => {
       const brotliResult = await service.compress(body, 'br');
 
       // Brotli typically compresses better; allow equality for edge cases
-      expect(brotliResult.data.length).toBeLessThanOrEqual(gzipResult.data.length + 50);
+      expect(brotliResult.data.length).toBeLessThanOrEqual(
+        gzipResult.data.length + 50,
+      );
     });
 
     it('sets Content-Encoding to br in the compressed result', async () => {
@@ -323,7 +332,7 @@ describe('API Compression Integration Tests (#1152)', () => {
 
     it('increments compressedResponses only for actually-compressed responses', async () => {
       await service.compress(makeBody(2048), 'gzip'); // compressed
-      await service.compress(makeBody(100), 'gzip');  // below threshold
+      await service.compress(makeBody(100), 'gzip'); // below threshold
       expect(service.getMetrics().compressedResponses).toBe(1);
     });
 

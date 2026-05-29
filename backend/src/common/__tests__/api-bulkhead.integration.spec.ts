@@ -62,11 +62,17 @@ describe('API Bulkhead Integration Tests (#1150)', () => {
       const paymentTask = deferred<string>();
 
       // Saturate the payments compartment
-      const paymentCall = service.execute('payments', () => paymentTask.promise);
+      const paymentCall = service.execute(
+        'payments',
+        () => paymentTask.promise,
+      );
       await Promise.resolve();
 
       // profiles compartment must still accept work
-      const profileResult = await service.execute('profiles', async () => 'profile-ok');
+      const profileResult = await service.execute(
+        'profiles',
+        async () => 'profile-ok',
+      );
       expect(profileResult).toBe('profile-ok');
 
       // payments compartment is full — must reject immediately
@@ -110,7 +116,9 @@ describe('API Bulkhead Integration Tests (#1150)', () => {
       service.configure('db-pool', { maxConcurrent: 3, maxQueue: 10 });
 
       const slots = [deferred<void>(), deferred<void>(), deferred<void>()];
-      const calls = slots.map((d) => service.execute('db-pool', () => d.promise));
+      const calls = slots.map((d) =>
+        service.execute('db-pool', () => d.promise),
+      );
       await Promise.resolve();
 
       expect(service.getMetrics('db-pool')!.active).toBe(3);
@@ -118,9 +126,11 @@ describe('API Bulkhead Integration Tests (#1150)', () => {
       // A 4th call must wait in queue — not run immediately
       let fourthCompleted = false;
       const d4 = deferred<void>();
-      const fourth = service.execute('db-pool', () => d4.promise).then(() => {
-        fourthCompleted = true;
-      });
+      const fourth = service
+        .execute('db-pool', () => d4.promise)
+        .then(() => {
+          fourthCompleted = true;
+        });
 
       await Promise.resolve();
       expect(service.getMetrics('db-pool')!.active).toBe(3);
@@ -224,7 +234,9 @@ describe('API Bulkhead Integration Tests (#1150)', () => {
       service.configure('queued-timeout', { maxConcurrent: 1, maxQueue: 5 });
 
       // Slot holder that finishes quickly
-      const first = service.execute('queued-timeout', () => delay(20).then(() => 'first'));
+      const first = service.execute('queued-timeout', () =>
+        delay(20).then(() => 'first'),
+      );
 
       const second = service.execute('queued-timeout', async () => 'second');
 
@@ -376,7 +388,9 @@ describe('API Bulkhead Integration Tests (#1150)', () => {
       service.configure('burst', { maxConcurrent: 2, maxQueue: 0 });
 
       const holders = [deferred<void>(), deferred<void>()];
-      const actives = holders.map((h) => service.execute('burst', () => h.promise));
+      const actives = holders.map((h) =>
+        service.execute('burst', () => h.promise),
+      );
       await Promise.resolve();
 
       const rejections = await Promise.allSettled(

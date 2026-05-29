@@ -7,7 +7,11 @@ import { BulkheadService } from '../src/common/resilience/bulkhead.service';
 import { FallbackService } from '../src/common/resilience/fallback.service';
 import { DegradationService } from '../src/common/resilience/degradation.service';
 import { IncidentService } from '../src/common/resilience/incident.service';
-import { DegradationLevel, FeaturePriority, IncidentSeverity } from '../src/common/resilience/resilience.types';
+import {
+  DegradationLevel,
+  FeaturePriority,
+  IncidentSeverity,
+} from '../src/common/resilience/resilience.types';
 import { BulkheadCapacityExceededError } from '../src/common/resilience/resilience.errors';
 
 describe('Chaos Engineering: Resilience (e2e)', () => {
@@ -41,8 +45,14 @@ describe('Chaos Engineering: Resilience (e2e)', () => {
 
   describe('Bulkhead isolation under load spikes', () => {
     it('prevents a saturated compartment from exhausting shared resources', async () => {
-      bulkheadService.configure('chaos-slow', { maxConcurrent: 2, maxQueue: 2 });
-      bulkheadService.configure('chaos-fast', { maxConcurrent: 10, maxQueue: 10 });
+      bulkheadService.configure('chaos-slow', {
+        maxConcurrent: 2,
+        maxQueue: 2,
+      });
+      bulkheadService.configure('chaos-fast', {
+        maxConcurrent: 10,
+        maxQueue: 10,
+      });
 
       const hold = new Promise<void>(() => {});
       const slowCalls = Array.from({ length: 4 }, () =>
@@ -57,7 +67,13 @@ describe('Chaos Engineering: Resilience (e2e)', () => {
         ),
       );
 
-      expect(fastResults).toEqual(['fast-0', 'fast-1', 'fast-2', 'fast-3', 'fast-4']);
+      expect(fastResults).toEqual([
+        'fast-0',
+        'fast-1',
+        'fast-2',
+        'fast-3',
+        'fast-4',
+      ]);
 
       const slowMetrics = bulkheadService.getMetrics('chaos-slow');
       expect(slowMetrics?.totalRejected).toBe(0);
@@ -68,7 +84,10 @@ describe('Chaos Engineering: Resilience (e2e)', () => {
     });
 
     it('rejects calls beyond capacity with BulkheadCapacityExceededError', async () => {
-      bulkheadService.configure('chaos-tight', { maxConcurrent: 1, maxQueue: 0 });
+      bulkheadService.configure('chaos-tight', {
+        maxConcurrent: 1,
+        maxQueue: 0,
+      });
 
       const hold = new Promise<void>(() => {});
       const first = bulkheadService.execute('chaos-tight', () => hold);
@@ -87,8 +106,13 @@ describe('Chaos Engineering: Resilience (e2e)', () => {
   describe('Fallback behavior under dependency failure', () => {
     it('serves fallback value when primary operation fails', async () => {
       const result = await fallbackService.execute(
-        async () => { throw new Error('db connection lost'); },
-        { fallbackValue: { cached: true, data: [] }, context: 'chaos-fallback' },
+        async () => {
+          throw new Error('db connection lost');
+        },
+        {
+          fallbackValue: { cached: true, data: [] },
+          context: 'chaos-fallback',
+        },
       );
 
       expect(result).toEqual({ cached: true, data: [] });
@@ -100,7 +124,9 @@ describe('Chaos Engineering: Resilience (e2e)', () => {
       const fallbackFn = jest.fn().mockResolvedValue('degraded-response');
 
       const result = await fallbackService.execute(
-        async () => { throw originalError; },
+        async () => {
+          throw originalError;
+        },
         { fallbackFn, context: 'chaos-fallback-fn' },
       );
 
@@ -111,7 +137,9 @@ describe('Chaos Engineering: Resilience (e2e)', () => {
     it('rethrows when shouldFallback predicate returns false', async () => {
       await expect(
         fallbackService.execute(
-          async () => { throw new Error('fatal: validation failed'); },
+          async () => {
+            throw new Error('fatal: validation failed');
+          },
           {
             fallbackValue: 'cached',
             shouldFallback: (err) => !err.message.includes('fatal'),
@@ -125,9 +153,13 @@ describe('Chaos Engineering: Resilience (e2e)', () => {
 
     it('chains fallback after fallbackFn failure gracefully', async () => {
       const result = await fallbackService.execute(
-        async () => { throw new Error('primary down'); },
+        async () => {
+          throw new Error('primary down');
+        },
         {
-          fallbackFn: async () => { throw new Error('fallback also down'); },
+          fallbackFn: async () => {
+            throw new Error('fallback also down');
+          },
           fallbackValue: 'ultimate-safety-net',
           context: 'chaos-chained',
         },
@@ -139,24 +171,43 @@ describe('Chaos Engineering: Resilience (e2e)', () => {
 
   describe('Graceful degradation during simulated outages', () => {
     it('sheds optional features under PARTIAL degradation', () => {
-      degradationService.registerFeature('chaos-payments', FeaturePriority.ESSENTIAL);
-      degradationService.registerFeature('chaos-search', FeaturePriority.STANDARD);
-      degradationService.registerFeature('chaos-recommendations', FeaturePriority.OPTIONAL);
+      degradationService.registerFeature(
+        'chaos-payments',
+        FeaturePriority.ESSENTIAL,
+      );
+      degradationService.registerFeature(
+        'chaos-search',
+        FeaturePriority.STANDARD,
+      );
+      degradationService.registerFeature(
+        'chaos-recommendations',
+        FeaturePriority.OPTIONAL,
+      );
 
-      degradationService.setLevel(DegradationLevel.PARTIAL, 'chaos: simulated high latency');
+      degradationService.setLevel(
+        DegradationLevel.PARTIAL,
+        'chaos: simulated high latency',
+      );
 
       expect(degradationService.isFeatureEnabled('chaos-payments')).toBe(true);
       expect(degradationService.isFeatureEnabled('chaos-search')).toBe(true);
-      expect(degradationService.isFeatureEnabled('chaos-recommendations')).toBe(false);
+      expect(degradationService.isFeatureEnabled('chaos-recommendations')).toBe(
+        false,
+      );
       expect(degradationService.isDegraded()).toBe(true);
     });
 
     it('keeps only essential features under SEVERE degradation', () => {
-      degradationService.setLevel(DegradationLevel.SEVERE, 'chaos: simulated db outage');
+      degradationService.setLevel(
+        DegradationLevel.SEVERE,
+        'chaos: simulated db outage',
+      );
 
       expect(degradationService.isFeatureEnabled('chaos-payments')).toBe(true);
       expect(degradationService.isFeatureEnabled('chaos-search')).toBe(false);
-      expect(degradationService.isFeatureEnabled('chaos-recommendations')).toBe(false);
+      expect(degradationService.isFeatureEnabled('chaos-recommendations')).toBe(
+        false,
+      );
     });
 
     it('returns to NORMAL when degradation is lifted', () => {
@@ -165,7 +216,9 @@ describe('Chaos Engineering: Resilience (e2e)', () => {
 
       degradationService.setLevel(DegradationLevel.NORMAL, 'recovered');
       expect(degradationService.isDegraded()).toBe(false);
-      expect(degradationService.isFeatureEnabled('chaos-recommendations')).toBe(true);
+      expect(degradationService.isFeatureEnabled('chaos-recommendations')).toBe(
+        true,
+      );
     });
   });
 
@@ -193,11 +246,17 @@ describe('Chaos Engineering: Resilience (e2e)', () => {
         affectedServices: ['redis'],
       });
 
-      const mitigated = incidentService.mitigate(incident.id, 'failover to replica');
+      const mitigated = incidentService.mitigate(
+        incident.id,
+        'failover to replica',
+      );
       expect(mitigated.status).toBe('mitigating');
       expect(mitigated.mitigatedAt).toBeDefined();
 
-      const resolved = incidentService.resolve(incident.id, 'cache cluster recovered');
+      const resolved = incidentService.resolve(
+        incident.id,
+        'cache cluster recovered',
+      );
       expect(resolved.status).toBe('resolved');
       expect(resolved.resolvedAt).toBeDefined();
 
@@ -216,8 +275,14 @@ describe('Chaos Engineering: Resilience (e2e)', () => {
 
   describe('Cascading failure prevention', () => {
     it('isolates failures so one saturated compartment does not affect others', async () => {
-      bulkheadService.configure('chaos-leaky', { maxConcurrent: 1, maxQueue: 0 });
-      bulkheadService.configure('chaos-healthy', { maxConcurrent: 5, maxQueue: 5 });
+      bulkheadService.configure('chaos-leaky', {
+        maxConcurrent: 1,
+        maxQueue: 0,
+      });
+      bulkheadService.configure('chaos-healthy', {
+        maxConcurrent: 5,
+        maxQueue: 5,
+      });
 
       const neverResolve = new Promise<void>(() => {});
 
@@ -237,13 +302,21 @@ describe('Chaos Engineering: Resilience (e2e)', () => {
     });
 
     it('recovers after a rejected compartment allows new calls when capacity frees', async () => {
-      bulkheadService.configure('chaos-recover', { maxConcurrent: 1, maxQueue: 1 });
+      bulkheadService.configure('chaos-recover', {
+        maxConcurrent: 1,
+        maxQueue: 1,
+      });
 
       let release: () => void;
-      const hold = new Promise<void>((r) => { release = r; });
+      const hold = new Promise<void>((r) => {
+        release = r;
+      });
 
       const first = bulkheadService.execute('chaos-recover', () => hold);
-      const second = bulkheadService.execute('chaos-recover', async () => 'queued');
+      const second = bulkheadService.execute(
+        'chaos-recover',
+        async () => 'queued',
+      );
       await new Promise((r) => setImmediate(r));
 
       await expect(
@@ -254,7 +327,10 @@ describe('Chaos Engineering: Resilience (e2e)', () => {
       await first;
       await second;
 
-      const result = await bulkheadService.execute('chaos-recover', async () => 'recovered');
+      const result = await bulkheadService.execute(
+        'chaos-recover',
+        async () => 'recovered',
+      );
       expect(result).toBe('recovered');
 
       const metrics = bulkheadService.getMetrics('chaos-recover');
@@ -299,16 +375,22 @@ describe('Chaos Engineering: Resilience (e2e)', () => {
 
   describe('Resilience pattern interplay', () => {
     it('bulkhead + fallback work together to prevent total failure', async () => {
-      bulkheadService.configure('chaos-interplay', { maxConcurrent: 2, maxQueue: 2 });
+      bulkheadService.configure('chaos-interplay', {
+        maxConcurrent: 2,
+        maxQueue: 2,
+      });
 
       const results = await Promise.allSettled(
         Array.from({ length: 5 }, (_, i) =>
           (async () => {
             try {
-              return await bulkheadService.execute('chaos-interplay', async () => {
-                if (i >= 3) throw new Error('simulated chaos failure');
-                return `success-${i}`;
-              });
+              return await bulkheadService.execute(
+                'chaos-interplay',
+                async () => {
+                  if (i >= 3) throw new Error('simulated chaos failure');
+                  return `success-${i}`;
+                },
+              );
             } catch (err) {
               if (err instanceof BulkheadCapacityExceededError) {
                 return 'rate-limited-fallback';

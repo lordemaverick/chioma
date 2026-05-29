@@ -31,11 +31,23 @@ describe('Email Template Integration (e2e)', () => {
         message: 'Your transaction TXN-123456 for $100.00 USD was successful.',
       };
 
-      const sendSpy = jest.spyOn(emailService, 'sendNotificationEmail').mockResolvedValueOnce();
+      const sendSpy = jest
+        .spyOn(emailService, 'sendNotificationEmail')
+        .mockResolvedValueOnce();
 
-      await emailService.sendNotificationEmail(recipient, 'Transaction Confirmation', 'transaction_confirmation', templateData);
+      await emailService.sendNotificationEmail(
+        recipient,
+        'Transaction Confirmation',
+        'transaction_confirmation',
+        templateData,
+      );
 
-      expect(sendSpy).toHaveBeenCalledWith(recipient, 'Transaction Confirmation', 'transaction_confirmation', templateData);
+      expect(sendSpy).toHaveBeenCalledWith(
+        recipient,
+        'Transaction Confirmation',
+        'transaction_confirmation',
+        templateData,
+      );
 
       sendSpy.mockRestore();
     });
@@ -46,9 +58,16 @@ describe('Email Template Integration (e2e)', () => {
         title: 'Generic Notification',
       };
 
-      const sendSpy = jest.spyOn(emailService, 'sendNotificationEmail').mockResolvedValueOnce();
+      const sendSpy = jest
+        .spyOn(emailService, 'sendNotificationEmail')
+        .mockResolvedValueOnce();
 
-      await emailService.sendNotificationEmail(recipient, 'Generic Notification', 'generic', templateData);
+      await emailService.sendNotificationEmail(
+        recipient,
+        'Generic Notification',
+        'generic',
+        templateData,
+      );
 
       expect(sendSpy).toHaveBeenCalled();
 
@@ -62,9 +81,16 @@ describe('Email Template Integration (e2e)', () => {
         message: 'Important notification with HTML content',
       };
 
-      const sendSpy = jest.spyOn(emailService, 'sendNotificationEmail').mockResolvedValueOnce();
+      const sendSpy = jest
+        .spyOn(emailService, 'sendNotificationEmail')
+        .mockResolvedValueOnce();
 
-      await emailService.sendNotificationEmail(recipient, 'HTML Content', 'html_template', templateData);
+      await emailService.sendNotificationEmail(
+        recipient,
+        'HTML Content',
+        'html_template',
+        templateData,
+      );
 
       expect(sendSpy).toHaveBeenCalled();
 
@@ -80,9 +106,16 @@ describe('Email Template Integration (e2e)', () => {
         actionText: 'Verify Email',
       };
 
-      const sendSpy = jest.spyOn(emailService, 'sendNotificationEmail').mockResolvedValueOnce();
+      const sendSpy = jest
+        .spyOn(emailService, 'sendNotificationEmail')
+        .mockResolvedValueOnce();
 
-      await emailService.sendNotificationEmail(recipient, 'Action Required', 'action_template', templateData);
+      await emailService.sendNotificationEmail(
+        recipient,
+        'Action Required',
+        'action_template',
+        templateData,
+      );
 
       expect(sendSpy).toHaveBeenCalled();
 
@@ -99,9 +132,16 @@ describe('Email Template Integration (e2e)', () => {
         items: ['Item 1', 'Item 2', 'Item 3'],
       };
 
-      const sendSpy = jest.spyOn(emailService, 'sendNotificationEmail').mockResolvedValueOnce();
+      const sendSpy = jest
+        .spyOn(emailService, 'sendNotificationEmail')
+        .mockResolvedValueOnce();
 
-      await emailService.sendNotificationEmail(recipient, 'Your Items', 'items_template', templateData);
+      await emailService.sendNotificationEmail(
+        recipient,
+        'Your Items',
+        'items_template',
+        templateData,
+      );
 
       expect(sendSpy).toHaveBeenCalled();
 
@@ -116,9 +156,16 @@ describe('Email Template Integration (e2e)', () => {
         items: [],
       };
 
-      const sendSpy = jest.spyOn(emailService, 'sendNotificationEmail').mockResolvedValueOnce();
+      const sendSpy = jest
+        .spyOn(emailService, 'sendNotificationEmail')
+        .mockResolvedValueOnce();
 
-      await emailService.sendNotificationEmail(recipient, 'Your Items', 'items_template', templateData);
+      await emailService.sendNotificationEmail(
+        recipient,
+        'Your Items',
+        'items_template',
+        templateData,
+      );
 
       expect(sendSpy).toHaveBeenCalled();
 
@@ -133,9 +180,16 @@ describe('Email Template Integration (e2e)', () => {
         items: Array.from({ length: 10 }, (_, i) => `Item ${i + 1}`),
       };
 
-      const sendSpy = jest.spyOn(emailService, 'sendNotificationEmail').mockResolvedValueOnce();
+      const sendSpy = jest
+        .spyOn(emailService, 'sendNotificationEmail')
+        .mockResolvedValueOnce();
 
-      await emailService.sendNotificationEmail(recipient, 'Your Recent Items', 'items_template', templateData);
+      await emailService.sendNotificationEmail(
+        recipient,
+        'Your Recent Items',
+        'items_template',
+        templateData,
+      );
 
       expect(sendSpy).toHaveBeenCalled();
 
@@ -148,7 +202,9 @@ describe('Email Template Integration (e2e)', () => {
       const recipient = 'test@example.com';
       const token = 'verify-token-123';
 
-      const sendSpy = jest.spyOn(emailService, 'sendVerificationEmail').mockResolvedValueOnce();
+      const sendSpy = jest
+        .spyOn(emailService, 'sendVerificationEmail')
+        .mockResolvedValueOnce();
 
       await emailService.sendVerificationEmail(recipient, token);
 
@@ -161,7 +217,9 @@ describe('Email Template Integration (e2e)', () => {
       const recipient = 'test@example.com';
       const token = 'reset-token-456';
 
-      const sendSpy = jest.spyOn(emailService, 'sendPasswordResetEmail').mockResolvedValueOnce();
+      const sendSpy = jest
+        .spyOn(emailService, 'sendPasswordResetEmail')
+        .mockResolvedValueOnce();
 
       await emailService.sendPasswordResetEmail(recipient, token);
 
@@ -178,7 +236,9 @@ describe('Email Template Integration (e2e)', () => {
         details: { code: 'ERROR_001', timestamp: new Date().toISOString() },
       };
 
-      const sendSpy = jest.spyOn(emailService, 'sendAlertEmail').mockResolvedValueOnce();
+      const sendSpy = jest
+        .spyOn(emailService, 'sendAlertEmail')
+        .mockResolvedValueOnce();
 
       await emailService.sendAlertEmail(recipient, subject, data);
 
@@ -190,9 +250,9 @@ describe('Email Template Integration (e2e)', () => {
     it('should handle delivery failures gracefully', async () => {
       const recipient = 'invalid-email@';
 
-      const sendSpy = jest.spyOn(emailService, 'sendVerificationEmail').mockRejectedValueOnce(
-        new Error('Failed to send verification email'),
-      );
+      const sendSpy = jest
+        .spyOn(emailService, 'sendVerificationEmail')
+        .mockRejectedValueOnce(new Error('Failed to send verification email'));
 
       await expect(
         emailService.sendVerificationEmail(recipient, 'token'),
@@ -205,12 +265,17 @@ describe('Email Template Integration (e2e)', () => {
       const recipient = 'test@example.com';
       const templateData = { title: 'Test', message: 'Test message' };
 
-      const sendSpy = jest.spyOn(emailService, 'sendNotificationEmail').mockRejectedValueOnce(
-        new Error('Failed to send notification email'),
-      );
+      const sendSpy = jest
+        .spyOn(emailService, 'sendNotificationEmail')
+        .mockRejectedValueOnce(new Error('Failed to send notification email'));
 
       await expect(
-        emailService.sendNotificationEmail(recipient, 'Test', 'test_template', templateData),
+        emailService.sendNotificationEmail(
+          recipient,
+          'Test',
+          'test_template',
+          templateData,
+        ),
       ).rejects.toThrow('Failed to send notification email');
 
       sendSpy.mockRestore();
@@ -226,7 +291,9 @@ describe('Email Template Integration (e2e)', () => {
         details: { error: 'ECONNREFUSED', host: 'db.local' },
       };
 
-      const sendSpy = jest.spyOn(emailService, 'sendAlertEmail').mockResolvedValueOnce();
+      const sendSpy = jest
+        .spyOn(emailService, 'sendAlertEmail')
+        .mockResolvedValueOnce();
 
       await emailService.sendAlertEmail(recipient, subject, data);
 
@@ -242,7 +309,9 @@ describe('Email Template Integration (e2e)', () => {
         message: 'High CPU usage detected',
       };
 
-      const sendSpy = jest.spyOn(emailService, 'sendAlertEmail').mockResolvedValueOnce();
+      const sendSpy = jest
+        .spyOn(emailService, 'sendAlertEmail')
+        .mockResolvedValueOnce();
 
       await emailService.sendAlertEmail(recipient, subject, data);
 

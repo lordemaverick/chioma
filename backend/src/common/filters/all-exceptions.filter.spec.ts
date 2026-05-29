@@ -3,15 +3,16 @@ import { ArgumentsHost } from '@nestjs/common/interfaces';
 import { AllExceptionsFilter } from './all-exceptions.filter';
 import { ErrorCode } from '../errors/error-codes';
 
-const buildArgumentsHost = (request: any, response: any): ArgumentsHost => ({
-  switchToHttp: () => ({
-    getRequest: () => request,
-    getResponse: () => response,
-  }),
-  getType: () => 'http',
-  switchToRpc: jest.fn(),
-  switchToWs: jest.fn(),
-} as unknown as ArgumentsHost);
+const buildArgumentsHost = (request: any, response: any): ArgumentsHost =>
+  ({
+    switchToHttp: () => ({
+      getRequest: () => request,
+      getResponse: () => response,
+    }),
+    getType: () => 'http',
+    switchToRpc: jest.fn(),
+    switchToWs: jest.fn(),
+  }) as unknown as ArgumentsHost;
 
 describe('AllExceptionsFilter', () => {
   let filter: AllExceptionsFilter;

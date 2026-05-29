@@ -44,10 +44,11 @@ class TimeoutInterceptor implements NestInterceptor {
   constructor(private readonly config: TimeoutConfig) {}
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
-    const req = context.switchToHttp().getRequest<{ url?: string; route?: { path?: string } }>();
+    const req = context
+      .switchToHttp()
+      .getRequest<{ url?: string; route?: { path?: string } }>();
     const endpoint: string = req.route?.path ?? req.url ?? 'unknown';
-    const timeoutMs =
-      this.config.endpoints[endpoint] ?? this.config.defaultMs;
+    const timeoutMs = this.config.endpoints[endpoint] ?? this.config.defaultMs;
 
     this.metrics.totalRequests++;
 
@@ -75,7 +76,10 @@ class TimeoutInterceptor implements NestInterceptor {
   }
 
   getMetrics(): Readonly<TimeoutMetrics> {
-    return { ...this.metrics, timeoutsByEndpoint: { ...this.metrics.timeoutsByEndpoint } };
+    return {
+      ...this.metrics,
+      timeoutsByEndpoint: { ...this.metrics.timeoutsByEndpoint },
+    };
   }
 
   resetMetrics(): void {
@@ -147,7 +151,10 @@ describe('API Timeout Integration Tests (#1151)', () => {
     it('allows a request that completes within the default timeout', async () => {
       const handler = makeHandlerFromObservable(of({ ok: true }));
       const result = await collect(
-        interceptor.intercept(makeContext('/api/data'), handler) as Observable<unknown>,
+        interceptor.intercept(
+          makeContext('/api/data'),
+          handler,
+        ) as Observable<unknown>,
       );
       expect(result).toEqual([{ ok: true }]);
     });
@@ -155,7 +162,12 @@ describe('API Timeout Integration Tests (#1151)', () => {
     it('rejects a request that exceeds the default timeout with RequestTimeoutException', async () => {
       const handler = makeDelayedHandler(300, { data: 'late' }); // 300 ms > 200 ms default
       await expect(
-        collect(interceptor.intercept(makeContext('/api/data'), handler) as Observable<unknown>),
+        collect(
+          interceptor.intercept(
+            makeContext('/api/data'),
+            handler,
+          ) as Observable<unknown>,
+        ),
       ).rejects.toBeInstanceOf(RequestTimeoutException);
     });
 
@@ -163,7 +175,10 @@ describe('API Timeout Integration Tests (#1151)', () => {
       const handler = makeDelayedHandler(300, {});
       try {
         await collect(
-          interceptor.intercept(makeContext('/api/data'), handler) as Observable<unknown>,
+          interceptor.intercept(
+            makeContext('/api/data'),
+            handler,
+          ) as Observable<unknown>,
         );
         fail('Expected RequestTimeoutException');
       } catch (err: unknown) {
@@ -176,7 +191,12 @@ describe('API Timeout Integration Tests (#1151)', () => {
       const cause = new Error('business logic error');
       const handler = makeHandlerFromObservable(throwError(() => cause));
       await expect(
-        collect(interceptor.intercept(makeContext('/api/data'), handler) as Observable<unknown>),
+        collect(
+          interceptor.intercept(
+            makeContext('/api/data'),
+            handler,
+          ) as Observable<unknown>,
+        ),
       ).rejects.toBe(cause);
     });
   });
@@ -188,7 +208,10 @@ describe('API Timeout Integration Tests (#1151)', () => {
       // 400 ms < 2000 ms configured for /api/slow-allowed
       const handler = makeDelayedHandler(400, { result: 'ok' });
       const result = await collect(
-        interceptor.intercept(makeContext('/api/slow-allowed'), handler) as Observable<unknown>,
+        interceptor.intercept(
+          makeContext('/api/slow-allowed'),
+          handler,
+        ) as Observable<unknown>,
       );
       expect(result).toEqual([{ result: 'ok' }]);
     });
@@ -197,7 +220,12 @@ describe('API Timeout Integration Tests (#1151)', () => {
       // 100 ms > 50 ms configured for /api/strict
       const handler = makeDelayedHandler(100, {});
       await expect(
-        collect(interceptor.intercept(makeContext('/api/strict'), handler) as Observable<unknown>),
+        collect(
+          interceptor.intercept(
+            makeContext('/api/strict'),
+            handler,
+          ) as Observable<unknown>,
+        ),
       ).rejects.toBeInstanceOf(RequestTimeoutException);
     });
 
@@ -206,7 +234,10 @@ describe('API Timeout Integration Tests (#1151)', () => {
       const handler = makeDelayedHandler(250, {});
       await expect(
         collect(
-          interceptor.intercept(makeContext('/api/unlisted'), handler) as Observable<unknown>,
+          interceptor.intercept(
+            makeContext('/api/unlisted'),
+            handler,
+          ) as Observable<unknown>,
         ),
       ).rejects.toBeInstanceOf(RequestTimeoutException);
     });
@@ -255,13 +286,21 @@ describe('API Timeout Integration Tests (#1151)', () => {
       // First: timeout
       const slow = makeDelayedHandler(300, {});
       await expect(
-        collect(interceptor.intercept(makeContext('/api/data'), slow) as Observable<unknown>),
+        collect(
+          interceptor.intercept(
+            makeContext('/api/data'),
+            slow,
+          ) as Observable<unknown>,
+        ),
       ).rejects.toBeInstanceOf(RequestTimeoutException);
 
       // Second: fast — should still succeed
       const fast = makeHandlerFromObservable(of({ recovered: true }));
       const result = await collect(
-        interceptor.intercept(makeContext('/api/data'), fast) as Observable<unknown>,
+        interceptor.intercept(
+          makeContext('/api/data'),
+          fast,
+        ) as Observable<unknown>,
       );
       expect(result).toEqual([{ recovered: true }]);
     });
@@ -269,7 +308,10 @@ describe('API Timeout Integration Tests (#1151)', () => {
     it('handles empty response streams within the timeout window', async () => {
       const emptyHandler = makeHandlerFromObservable(of());
       const result = await collect(
-        interceptor.intercept(makeContext('/api/data'), emptyHandler) as Observable<unknown>,
+        interceptor.intercept(
+          makeContext('/api/data'),
+          emptyHandler,
+        ) as Observable<unknown>,
       );
       expect(result).toHaveLength(0);
     });
@@ -282,12 +324,17 @@ describe('API Timeout Integration Tests (#1151)', () => {
       const handler = makeDelayedHandler(300, {});
       try {
         await collect(
-          interceptor.intercept(makeContext('/api/data'), handler) as Observable<unknown>,
+          interceptor.intercept(
+            makeContext('/api/data'),
+            handler,
+          ) as Observable<unknown>,
         );
       } catch (err: unknown) {
         const tex = err as RequestTimeoutException;
         const body = tex.getResponse() as Record<string, unknown>;
-        expect(typeof body.message === 'string' || Array.isArray(body.message)).toBe(true);
+        expect(
+          typeof body.message === 'string' || Array.isArray(body.message),
+        ).toBe(true);
       }
     });
 
@@ -296,7 +343,10 @@ describe('API Timeout Integration Tests (#1151)', () => {
       let timeoutErr: unknown;
       try {
         await collect(
-          interceptor.intercept(makeContext('/api/data'), timeoutHandler) as Observable<unknown>,
+          interceptor.intercept(
+            makeContext('/api/data'),
+            timeoutHandler,
+          ) as Observable<unknown>,
         );
       } catch (e) {
         timeoutErr = e;
@@ -308,7 +358,10 @@ describe('API Timeout Integration Tests (#1151)', () => {
       let genericErr: unknown;
       try {
         await collect(
-          interceptor.intercept(makeContext('/api/data'), genericHandler) as Observable<unknown>,
+          interceptor.intercept(
+            makeContext('/api/data'),
+            genericHandler,
+          ) as Observable<unknown>,
         );
       } catch (e) {
         genericErr = e;
@@ -323,7 +376,10 @@ describe('API Timeout Integration Tests (#1151)', () => {
       const handler = makeDelayedHandler(300, {});
       try {
         await collect(
-          interceptor.intercept(makeContext('/api/data'), handler) as Observable<unknown>,
+          interceptor.intercept(
+            makeContext('/api/data'),
+            handler,
+          ) as Observable<unknown>,
         );
       } catch (err: unknown) {
         expect((err as RequestTimeoutException).getStatus()).toBe(408);
@@ -339,19 +395,39 @@ describe('API Timeout Integration Tests (#1151)', () => {
 
     it('increments totalRequests on every intercept call', async () => {
       const handler = makeHandlerFromObservable(of({}));
-      await collect(interceptor.intercept(makeContext('/api/data'), handler) as Observable<unknown>);
-      await collect(interceptor.intercept(makeContext('/api/data'), handler) as Observable<unknown>);
+      await collect(
+        interceptor.intercept(
+          makeContext('/api/data'),
+          handler,
+        ) as Observable<unknown>,
+      );
+      await collect(
+        interceptor.intercept(
+          makeContext('/api/data'),
+          handler,
+        ) as Observable<unknown>,
+      );
       expect(interceptor.getMetrics().totalRequests).toBe(2);
     });
 
     it('increments timedOutRequests only for requests that timeout', async () => {
       // One fast, one slow
       const fast = makeHandlerFromObservable(of({}));
-      await collect(interceptor.intercept(makeContext('/api/data'), fast) as Observable<unknown>);
+      await collect(
+        interceptor.intercept(
+          makeContext('/api/data'),
+          fast,
+        ) as Observable<unknown>,
+      );
 
       const slow = makeDelayedHandler(300, {});
       try {
-        await collect(interceptor.intercept(makeContext('/api/data'), slow) as Observable<unknown>);
+        await collect(
+          interceptor.intercept(
+            makeContext('/api/data'),
+            slow,
+          ) as Observable<unknown>,
+        );
       } catch {
         /* expected */
       }
@@ -370,7 +446,9 @@ describe('API Timeout Integration Tests (#1151)', () => {
               makeDelayedHandler(300, {}),
             ) as Observable<unknown>,
           );
-        } catch { /* expected */ }
+        } catch {
+          /* expected */
+        }
       }
       for (let i = 0; i < 3; i++) {
         try {
@@ -380,7 +458,9 @@ describe('API Timeout Integration Tests (#1151)', () => {
               makeDelayedHandler(100, {}),
             ) as Observable<unknown>,
           );
-        } catch { /* expected */ }
+        } catch {
+          /* expected */
+        }
       }
 
       const m = interceptor.getMetrics();
@@ -391,8 +471,15 @@ describe('API Timeout Integration Tests (#1151)', () => {
     it('resets all metric counters on resetMetrics()', async () => {
       const slow = makeDelayedHandler(300, {});
       try {
-        await collect(interceptor.intercept(makeContext('/api/data'), slow) as Observable<unknown>);
-      } catch { /* expected */ }
+        await collect(
+          interceptor.intercept(
+            makeContext('/api/data'),
+            slow,
+          ) as Observable<unknown>,
+        );
+      } catch {
+        /* expected */
+      }
 
       interceptor.resetMetrics();
       const m = interceptor.getMetrics();

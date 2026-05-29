@@ -52,7 +52,9 @@ describe('CORS and Security Headers Integration (e2e)', () => {
         .set('Origin', 'http://localhost:3001')
         .expect(200);
 
-      expect(response.headers['access-control-allow-origin']).toBe('http://localhost:3001');
+      expect(response.headers['access-control-allow-origin']).toBe(
+        'http://localhost:3001',
+      );
     });
 
     it('should allow requests from multiple permitted origins', async () => {
@@ -61,7 +63,9 @@ describe('CORS and Security Headers Integration (e2e)', () => {
         .set('Origin', 'https://chioma.io')
         .expect(200);
 
-      expect(response.headers['access-control-allow-origin']).toBe('https://chioma.io');
+      expect(response.headers['access-control-allow-origin']).toBe(
+        'https://chioma.io',
+      );
     });
 
     it('should include credentials header for permitted origins', async () => {
@@ -80,7 +84,9 @@ describe('CORS and Security Headers Integration (e2e)', () => {
         .expect(200); // Request succeeds but no CORS header
 
       // CORS headers should not be present for disallowed origins
-      expect(response.headers['access-control-allow-origin']).not.toBe('http://malicious.com');
+      expect(response.headers['access-control-allow-origin']).not.toBe(
+        'http://malicious.com',
+      );
     });
   });
 
@@ -101,8 +107,12 @@ describe('CORS and Security Headers Integration (e2e)', () => {
         .expect(204);
 
       expect(response.headers['access-control-allow-methods']).toContain('PUT');
-      expect(response.headers['access-control-allow-methods']).toContain('POST');
-      expect(response.headers['access-control-allow-methods']).toContain('DELETE');
+      expect(response.headers['access-control-allow-methods']).toContain(
+        'POST',
+      );
+      expect(response.headers['access-control-allow-methods']).toContain(
+        'DELETE',
+      );
     });
 
     it('should return allowed headers in preflight response', async () => {
@@ -142,7 +152,9 @@ describe('CORS and Security Headers Integration (e2e)', () => {
       const response = await request(app.getHttpServer()).get('/').expect(200);
 
       expect(response.headers['strict-transport-security']).toBeDefined();
-      expect(response.headers['strict-transport-security']).toContain('max-age');
+      expect(response.headers['strict-transport-security']).toContain(
+        'max-age',
+      );
     });
 
     it('should include X-Download-Options header', async () => {
@@ -166,7 +178,9 @@ describe('CORS and Security Headers Integration (e2e)', () => {
     it('should include Referrer-Policy header', async () => {
       const response = await request(app.getHttpServer()).get('/').expect(200);
 
-      expect(response.headers['referrer-policy']).toBe('strict-origin-when-cross-origin');
+      expect(response.headers['referrer-policy']).toBe(
+        'strict-origin-when-cross-origin',
+      );
     });
   });
 
@@ -234,7 +248,9 @@ describe('CORS and Security Headers Integration (e2e)', () => {
     });
 
     it('should include security headers on error responses', async () => {
-      const response = await request(app.getHttpServer()).get('/api/nonexistent').expect(404);
+      const response = await request(app.getHttpServer())
+        .get('/api/nonexistent')
+        .expect(404);
 
       expect(response.headers['x-frame-options']).toBe('DENY');
       expect(response.headers['x-content-type-options']).toBe('nosniff');
@@ -249,7 +265,9 @@ describe('CORS and Security Headers Integration (e2e)', () => {
         .set('Authorization', 'Bearer test-token')
         .expect(200);
 
-      expect(response.headers['access-control-allow-origin']).toBe('http://localhost:3001');
+      expect(response.headers['access-control-allow-origin']).toBe(
+        'http://localhost:3001',
+      );
       expect(response.headers['access-control-allow-credentials']).toBe('true');
     });
 
@@ -282,7 +300,8 @@ describe('CORS and Security Headers Integration (e2e)', () => {
         .set('Origin', 'http://localhost:3001')
         .expect(200);
 
-      const exposedHeaders = response.headers['access-control-expose-headers'] || '';
+      const exposedHeaders =
+        response.headers['access-control-expose-headers'] || '';
       expect(exposedHeaders.length).toBeGreaterThan(0);
     });
   });

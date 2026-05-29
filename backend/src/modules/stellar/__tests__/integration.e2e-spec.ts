@@ -5,9 +5,17 @@ import { ConfigService } from '@nestjs/config';
 import { Repository } from 'typeorm';
 import { StellarEscrow, EscrowStatus } from '../entities/stellar-escrow.entity';
 import { EscrowSignature } from '../entities/escrow-signature.entity';
-import { EscrowCondition, ConditionType } from '../entities/escrow-condition.entity';
+import {
+  EscrowCondition,
+  ConditionType,
+} from '../entities/escrow-condition.entity';
 import { EscrowContractService } from '../services/escrow-contract.service';
-import { CreateMultiSigEscrowDto, AddSignatureDto, CreateTimeLockedEscrowDto, CreateConditionalEscrowDto } from '../dto/escrow-enhanced.dto';
+import {
+  CreateMultiSigEscrowDto,
+  AddSignatureDto,
+  CreateTimeLockedEscrowDto,
+  CreateConditionalEscrowDto,
+} from '../dto/escrow-enhanced.dto';
 import * as StellarSdk from '@stellar/stellar-sdk';
 
 /**
@@ -33,7 +41,8 @@ describe('EscrowContractService – integration lifecycle', () => {
       const map: Record<string, any> = {
         SOROBAN_RPC_URL: 'http://mock-rpc',
         ESCROW_CONTRACT_ID: 'mock-contract-id',
-        STELLAR_ADMIN_SECRET_KEY: 'SXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX',
+        STELLAR_ADMIN_SECRET_KEY:
+          'SXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX',
         STELLAR_NETWORK: 'testnet',
       };
       return map[key];
