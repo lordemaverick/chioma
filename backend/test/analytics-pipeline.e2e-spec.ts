@@ -137,12 +137,12 @@ describe('Analytics Data Pipeline Integration', () => {
       const abuja = result.marketTrends.cityTrends.find(
         (c: { city: string }) => c.city === 'Abuja',
       );
-      expect(abuja.totalViews).toBe(200);
+      expect(abuja?.totalViews).toBe(200);
 
       const lagos = result.marketTrends.cityTrends.find(
         (c: { city: string }) => c.city === 'Lagos',
       );
-      expect(lagos.totalViews).toBe(150);
+      expect(lagos?.totalViews).toBe(150);
     });
 
     it('builds listing status distribution across all statuses', async () => {
@@ -158,9 +158,9 @@ describe('Analytics Data Pipeline Integration', () => {
 
       const dist = result.marketTrends.listingStatusDistribution;
       const published = dist.find(
-        (d: { status: string }) => d.status === ListingStatus.PUBLISHED,
+        (d: { status: ListingStatus }) => d.status === ListingStatus.PUBLISHED,
       );
-      expect(published.count).toBe(2);
+      expect(published?.count).toBe(2);
     });
   });
 

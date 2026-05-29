@@ -67,7 +67,7 @@ describe('KYC Verification Integration', () => {
         id: 'kyc-001',
         userId,
         status: KycStatus.PENDING,
-        encryptedKycData: 'enc:data',
+        encryptedKycData: { data: 'enc:data' },
       };
       mockKycRepository.create.mockReturnValue(savedRecord);
       mockKycRepository.save.mockResolvedValue(savedRecord);
@@ -86,7 +86,7 @@ describe('KYC Verification Integration', () => {
         id: 'kyc-002',
         userId,
         status: KycStatus.PENDING,
-        encryptedKycData: 'enc:data',
+        encryptedKycData: { data: 'enc:data' },
       };
       mockKycRepository.create.mockReturnValue(record);
       mockKycRepository.save.mockResolvedValue(record);
@@ -106,7 +106,7 @@ describe('KYC Verification Integration', () => {
         id: 'kyc-003',
         userId,
         status: KycStatus.PENDING,
-        encryptedKycData: 'enc:data',
+        encryptedKycData: { data: 'enc:data' },
       };
       mockKycRepository.create.mockReturnValue(record);
       mockKycRepository.save.mockResolvedValue(record);
@@ -220,7 +220,7 @@ describe('KYC Verification Integration', () => {
         id: 'kyc-001',
         userId,
         status: KycStatus.PENDING,
-        encryptedKycData: 'enc:data',
+        encryptedKycData: { data: 'enc:data' },
       };
       mockKycRepository.create.mockReturnValue(record);
       mockKycRepository.save.mockResolvedValue(record);
