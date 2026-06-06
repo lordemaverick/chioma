@@ -13,11 +13,7 @@ import { CacheService } from '../../common/cache/cache.service';
 import { DatabaseMonitorService } from './database-monitor.service';
 import { WebhookSignatureGuard } from '../webhooks/guards/webhook-signature.guard';
 import { WebhookSecret } from '../webhooks/decorators/webhook-secret.decorator';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiQuery,
-} from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiQuery } from '@nestjs/swagger';
 
 @ApiTags('Monitoring')
 @Controller()

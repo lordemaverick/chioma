@@ -18,7 +18,12 @@ import { WebhookSignatureGuard } from '../webhooks/guards/webhook-signature.guar
 import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
-  imports: [HttpModule, ScheduleModule.forRoot(), NotificationsModule, TypeOrmModule.forFeature([])],
+  imports: [
+    HttpModule,
+    ScheduleModule.forRoot(),
+    NotificationsModule,
+    TypeOrmModule.forFeature([]),
+  ],
   controllers: [MonitoringController, PerformanceController],
   providers: [
     MetricsService,

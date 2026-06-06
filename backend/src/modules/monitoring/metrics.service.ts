@@ -171,8 +171,7 @@ export class MetricsService implements OnModuleInit {
     this.blockchainDuration.observe({ type }, durationMs);
   }
 
-  setDatabaseConnections(_count: number): void {
-  }
+  setDatabaseConnections(_count: number): void {}
 
   setDatabasePoolUsage(
     active: number,

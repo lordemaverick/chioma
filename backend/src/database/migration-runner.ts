@@ -108,11 +108,9 @@ function suggestBackup(): void {
     '[Backup] ⚠️  It is strongly recommended to create a database backup before running migrations.',
   );
   console.info(
-    "[Backup] Run: pg_dump -h $DB_HOST -p $DB_PORT -U $DB_USERNAME -d $DB_NAME > backup_$(date +%Y%m%d_%H%M%S).sql",
+    '[Backup] Run: pg_dump -h $DB_HOST -p $DB_PORT -U $DB_USERNAME -d $DB_NAME > backup_$(date +%Y%m%d_%H%M%S).sql',
   );
-  console.info(
-    '[Backup] Or use: pnpm run db:backup',
-  );
+  console.info('[Backup] Or use: pnpm run db:backup');
 }
 
 /**
@@ -149,7 +147,8 @@ export async function runMigrationsWithRollback(options?: {
       success: false,
       run: 0,
       reverted: false,
-      error: 'Could not acquire migration lock. Another process may be running migrations.',
+      error:
+        'Could not acquire migration lock. Another process may be running migrations.',
     };
   }
 
@@ -168,7 +167,9 @@ export async function runMigrationsWithRollback(options?: {
       return { success: true, run: 0, reverted: false };
     }
 
-    console.info(`[Migration] Running ${pending.length} pending migration(s)...`);
+    console.info(
+      `[Migration] Running ${pending.length} pending migration(s)...`,
+    );
     for (const name of pending) {
       console.info(`[Migration]   → ${name}`);
     }
@@ -207,9 +208,7 @@ export async function runMigrationsWithRollback(options?: {
 /**
  * Revert the last executed migration, or all migrations down to a specific name.
  */
-export async function revertLastMigration(options?: {
-  to?: string;
-}): Promise<{
+export async function revertLastMigration(options?: { to?: string }): Promise<{
   success: boolean;
   error?: string;
   reverted?: number;
@@ -221,7 +220,8 @@ export async function revertLastMigration(options?: {
   if (!locked) {
     return {
       success: false,
-      error: 'Could not acquire migration lock. Another process may be running migrations.',
+      error:
+        'Could not acquire migration lock. Another process may be running migrations.',
     };
   }
 
@@ -318,7 +318,10 @@ async function main(): Promise<void> {
   const command = process.argv[2] || 'run';
   const dryRun = process.argv.includes('--dry-run');
   const toIndex = process.argv.indexOf('--to');
-  const to = toIndex >= 0 && toIndex + 1 < process.argv.length ? process.argv[toIndex + 1] : undefined;
+  const to =
+    toIndex >= 0 && toIndex + 1 < process.argv.length
+      ? process.argv[toIndex + 1]
+      : undefined;
 
   await AppDataSource.initialize().catch((err) => {
     console.error('DataSource init failed:', err);
@@ -370,7 +373,9 @@ async function main(): Promise<void> {
       return;
     }
 
-    console.error('Usage: migration-runner.ts run [--dry-run] | revert [--to <name>] | show');
+    console.error(
+      'Usage: migration-runner.ts run [--dry-run] | revert [--to <name>] | show',
+    );
     process.exit(1);
   } finally {
     await AppDataSource.destroy();

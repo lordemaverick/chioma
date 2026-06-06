@@ -6,6 +6,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { validateEnvironment } from './config/env.validation';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD, APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
@@ -62,6 +63,7 @@ import { FraudModule } from './modules/fraud/fraud.module';
 import { TransactionModule } from './modules/transactions/transaction.module';
 import { ApiVersionModule } from './common/api-versioning/api-version.module';
 import { ResponseTimeInterceptor } from './common/interceptors/response-time.interceptor';
+import { TimeoutInterceptor } from './common/interceptors/timeout.interceptor';
 
 const appLogger = new Logger('AppModule');
 
@@ -70,6 +72,8 @@ const appLogger = new Logger('AppModule');
     ...(process.env.NODE_ENV === 'test' ? [] : [SentryModule.forRoot()]),
     ConfigModule.forRoot({
       isGlobal: true,
+      envFilePath: [`.env.${process.env.NODE_ENV || 'development'}`, '.env'],
+      validate: validateEnvironment,
     }),
     LoggerModule,
     LockModule,
@@ -193,8 +197,19 @@ const appLogger = new Logger('AppModule');
           entities: [__dirname + '/modules/**/*.entity{.ts,.js}'],
           migrations: isTest ? [] : [__dirname + '/migrations/*{.ts,.js}'],
           synchronize: false,
-          logging: true,
+          logging: process.env.TYPEORM_LOGGING === 'true',
           logger: 'advanced-console' as const,
+          // Connection pooling configuration
+          extra: {
+            max: parseInt(process.env.DB_POOL_MAX || '20'),
+            min: parseInt(process.env.DB_POOL_MIN || '5'),
+            idleTimeoutMillis: parseInt(
+              process.env.DB_POOL_IDLE_TIMEOUT || '30000',
+            ),
+            connectionTimeoutMillis: parseInt(
+              process.env.DB_POOL_CONNECTION_TIMEOUT || '2000',
+            ),
+          },
         };
         console.log('[DEBUG] TypeORM Config:', {
           host: config.host,
@@ -203,6 +218,7 @@ const appLogger = new Logger('AppModule');
           database: config.database,
           synchronize: config.synchronize,
           logging: config.logging,
+          pool: config.extra,
         });
         return config;
       },
@@ -271,33 +287,13 @@ const appLogger = new Logger('AppModule');
       provide: APP_INTERCEPTOR,
       useClass: ResponseTimeInterceptor,
     },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: TimeoutInterceptor,
+    },
   ],
 })
 export class AppModule implements NestModule {
-  constructor() {
-    appLogger.log('Validating rate limit config');
-    this.validateRateLimitConfig();
-    appLogger.log('Rate limit config validation passed');
-  }
-
-  private validateRateLimitConfig(): void {
-    const required = [
-      'RATE_LIMIT_TTL',
-      'RATE_LIMIT_MAX',
-      'RATE_LIMIT_AUTH_TTL',
-      'RATE_LIMIT_AUTH_MAX',
-      'RATE_LIMIT_STRICT_TTL',
-      'RATE_LIMIT_STRICT_MAX',
-    ];
-
-    const missing = required.filter((key) => !process.env[key]);
-    if (missing.length > 0) {
-      throw new Error(
-        `Missing required environment variables: ${missing.join(', ')}`,
-      );
-    }
-  }
-
   configure(consumer: MiddlewareConsumer) {
     consumer.apply(LocalizationMiddleware).forRoutes('*');
 

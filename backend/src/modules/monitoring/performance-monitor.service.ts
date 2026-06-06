@@ -17,8 +17,12 @@ export interface PerformanceMetrics {
 }
 
 /** Requests exceeding this duration (ms) are classified as slow. Overridden by RESPONSE_TIME_SLOW_THRESHOLD_MS (falls back to LOG_SLOW_REQUEST_THRESHOLD for backwards compat). */
-export const SLOW_REQUEST_THRESHOLD_MS: number =
-  parseInt(process.env.RESPONSE_TIME_SLOW_THRESHOLD_MS ?? process.env.LOG_SLOW_REQUEST_THRESHOLD ?? '1000', 10);
+export const SLOW_REQUEST_THRESHOLD_MS: number = parseInt(
+  process.env.RESPONSE_TIME_SLOW_THRESHOLD_MS ??
+    process.env.LOG_SLOW_REQUEST_THRESHOLD ??
+    '1000',
+  10,
+);
 
 export interface PerformanceThreshold {
   endpoint: string;
@@ -75,8 +79,10 @@ export class PerformanceMonitorService {
 
   // Memory usage tracking
   private memoryUsageHistory: NodeJS.MemoryUsage[] = [];
-  private readonly MAX_HISTORY_SIZE: number =
-    parseInt(process.env.RESPONSE_TIME_BUFFER_SIZE ?? '1000', 10);
+  private readonly MAX_HISTORY_SIZE: number = parseInt(
+    process.env.RESPONSE_TIME_BUFFER_SIZE ?? '1000',
+    10,
+  );
 
   // Database query performance tracking (per operation)
   private readonly databaseQueryData: Map<string, number[]> = new Map();
@@ -259,7 +265,12 @@ export class PerformanceMonitorService {
    * Return the response-time summary for all routes within a sliding window.
    * This is the data source for GET /api/performance/response-times.
    */
-  getResponseTimeStats(windowSeconds = parseInt(process.env.RESPONSE_TIME_WINDOW_SECONDS ?? '60', 10)): {
+  getResponseTimeStats(
+    windowSeconds = parseInt(
+      process.env.RESPONSE_TIME_WINDOW_SECONDS ?? '60',
+      10,
+    ),
+  ): {
     generatedAt: Date;
     windowSeconds: number;
     routes: Array<{
@@ -331,7 +342,13 @@ export class PerformanceMonitorService {
   getEndpointPercentiles(
     method: string,
     endpoint: string,
-  ): { p50: number; p75: number; p90: number; p95: number; p99: number } | null {
+  ): {
+    p50: number;
+    p75: number;
+    p90: number;
+    p95: number;
+    p99: number;
+  } | null {
     const key = `${method}:${endpoint}`;
     const data = this.performanceData.get(key);
     if (!data || data.length === 0) return null;

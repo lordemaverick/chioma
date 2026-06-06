@@ -101,12 +101,16 @@ export class DatabaseMonitorService {
         idleConnections: idle,
         maxConnections,
         waitingClients: waiting,
-        connectionUsagePercent: maxConnections > 0
-          ? parseFloat(((active / maxConnections) * 100).toFixed(1))
-          : 0,
+        connectionUsagePercent:
+          maxConnections > 0
+            ? parseFloat(((active / maxConnections) * 100).toFixed(1))
+            : 0,
       };
     } catch (error) {
-      this.logger.error('Failed to get pool metrics', error instanceof Error ? error.message : String(error));
+      this.logger.error(
+        'Failed to get pool metrics',
+        error instanceof Error ? error.message : String(error),
+      );
       return null;
     }
   }
@@ -139,7 +143,9 @@ export class DatabaseMonitorService {
         tableCount: stats[0]?.table_count ?? 0,
         indexCount: stats[0]?.index_count ?? 0,
         totalIndexSizeBytes: Number(stats[0]?.index_size_bytes ?? 0),
-        totalIndexSizeHuman: this.formatBytes(Number(stats[0]?.index_size_bytes ?? 0)),
+        totalIndexSizeHuman: this.formatBytes(
+          Number(stats[0]?.index_size_bytes ?? 0),
+        ),
       };
     } catch (error) {
       this.logger.error(
@@ -172,7 +178,7 @@ export class DatabaseMonitorService {
       let tps = 0;
       if (elapsed > 0 && this.lastQueryCount > 0) {
         tps = parseFloat(
-          (((totalCalls - this.lastQueryCount) / elapsed).toFixed(2)),
+          ((totalCalls - this.lastQueryCount) / elapsed).toFixed(2),
         );
       }
       this.lastQueryTime = now;
@@ -253,7 +259,9 @@ export class DatabaseMonitorService {
       // Check pool metrics
       if (snapshot.pool) {
         const usage = snapshot.pool.connectionUsagePercent;
-        this.metricsService.setDatabaseConnections(snapshot.pool.activeConnections);
+        this.metricsService.setDatabaseConnections(
+          snapshot.pool.activeConnections,
+        );
 
         if (usage >= this.POOL_CRITICAL_PERCENT * 100) {
           alerts.push({
@@ -344,7 +352,10 @@ export class DatabaseMonitorService {
       }
 
       // Check database size growth (warn if > 10GB)
-      if (snapshot.size && snapshot.size.databaseSizeBytes > 10 * 1024 * 1024 * 1024) {
+      if (
+        snapshot.size &&
+        snapshot.size.databaseSizeBytes > 10 * 1024 * 1024 * 1024
+      ) {
         alerts.push({
           status: 'firing',
           labels: {

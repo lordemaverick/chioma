@@ -76,7 +76,40 @@ describe('Security and CORS (e2e)', () => {
           'Access-Control-Allow-Methods',
           'GET,POST,PUT,DELETE,PATCH,OPTIONS',
         )
-        .expect('Access-Control-Allow-Credentials', 'true');
+        .expect('Access-Control-Allow-Credentials', 'true')
+        .expect('Access-Control-Max-Age', '86400');
+    });
+
+    it('should allow actual requests from permitted origins', () => {
+      return request(app.getHttpServer())
+        .get('/')
+        .set('Origin', 'http://localhost:3001')
+        .expect(200)
+        .expect('Access-Control-Allow-Origin', 'http://localhost:3001');
+    });
+
+    it('should expose configured headers', () => {
+      return request(app.getHttpServer())
+        .options('/')
+        .set('Origin', 'http://localhost:3001')
+        .set('Access-Control-Request-Method', 'GET')
+        .expect(204)
+        .expect(
+          'Access-Control-Expose-Headers',
+          'X-RateLimit-Limit,X-RateLimit-Remaining,X-RateLimit-Reset',
+        );
+    });
+
+    it('should allow specific request headers', () => {
+      return request(app.getHttpServer())
+        .options('/')
+        .set('Origin', 'http://localhost:3001')
+        .set('Access-Control-Request-Method', 'POST')
+        .set(
+          'Access-Control-Request-Headers',
+          'Content-Type,Authorization,X-Request-ID',
+        )
+        .expect(204);
     });
 
     it('should block or ignore CORS for disallowed origins', () => {
@@ -86,6 +119,15 @@ describe('Security and CORS (e2e)', () => {
         .set('Access-Control-Request-Method', 'POST')
         .expect((res) => {
           // It might return 204 but without the allow-origin header, or allow it if origin validation fails
+          expect(res.headers['access-control-allow-origin']).toBeUndefined();
+        });
+    });
+
+    it('should block or ignore actual requests from disallowed origins', () => {
+      return request(app.getHttpServer())
+        .get('/')
+        .set('Origin', 'http://evil.com')
+        .expect((res) => {
           expect(res.headers['access-control-allow-origin']).toBeUndefined();
         });
     });

@@ -29,18 +29,27 @@ function makeMetric(
   responseTime: number,
   statusCode = 200,
 ): PerformanceMetrics {
-  return { timestamp: new Date(), endpoint, method, responseTime, statusCode, memoryUsage: process.memoryUsage() };
+  return {
+    timestamp: new Date(),
+    endpoint,
+    method,
+    responseTime,
+    statusCode,
+    memoryUsage: process.memoryUsage(),
+  };
 }
 
 const mockPerformanceMonitor = { recordRequestMetrics: jest.fn() };
 
-function makeContext(opts: {
-  path?: string;
-  method?: string;
-  routePath?: string;
-  statusCode?: number;
-  startTime?: number;
-} = {}): ExecutionContext {
+function makeContext(
+  opts: {
+    path?: string;
+    method?: string;
+    routePath?: string;
+    statusCode?: number;
+    startTime?: number;
+  } = {},
+): ExecutionContext {
   const req: any = {
     path: opts.path ?? '/api/test',
     method: opts.method ?? 'GET',
@@ -68,29 +77,42 @@ describe('ResponseTimeInterceptor', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ResponseTimeInterceptor,
-        { provide: PerformanceMonitorService, useValue: mockPerformanceMonitor },
+        {
+          provide: PerformanceMonitorService,
+          useValue: mockPerformanceMonitor,
+        },
       ],
     }).compile();
 
     interceptor = module.get(ResponseTimeInterceptor);
-    loggerWarnSpy = jest.spyOn((interceptor as any).logger, 'warn').mockImplementation(() => {});
+    loggerWarnSpy = jest
+      .spyOn((interceptor as any).logger, 'warn')
+      .mockImplementation(() => {});
   });
 
   it('records_duration_on_success', async () => {
     const ctx = makeContext({ path: '/api/properties', method: 'GET' });
     await new Promise<void>((resolve) => {
-      interceptor.intercept(ctx, { handle: () => of({}).pipe(delay(5)) }).subscribe({ complete: resolve });
+      interceptor
+        .intercept(ctx, { handle: () => of({}).pipe(delay(5)) })
+        .subscribe({ complete: resolve });
     });
     await flushImmediate();
 
-    expect(mockPerformanceMonitor.recordRequestMetrics).toHaveBeenCalledTimes(1);
+    expect(mockPerformanceMonitor.recordRequestMetrics).toHaveBeenCalledTimes(
+      1,
+    );
     const m = mockPerformanceMonitor.recordRequestMetrics.mock.calls[0][0];
     expect(m.responseTime).toBeGreaterThanOrEqual(0);
     expect(m.statusCode).toBe(200);
   });
 
   it('records_duration_on_error — status 500 still recorded', async () => {
-    const ctx = makeContext({ path: '/api/payments', method: 'POST', statusCode: 500 });
+    const ctx = makeContext({
+      path: '/api/payments',
+      method: 'POST',
+      statusCode: 500,
+    });
     await new Promise<void>((resolve) => {
       interceptor
         .intercept(ctx, { handle: () => throwError(() => ({ status: 500 })) })
@@ -114,7 +136,10 @@ describe('ResponseTimeInterceptor', () => {
         (rawPath) =>
           new Promise<void>((resolve) => {
             interceptor
-              .intercept(makeContext({ path: rawPath, routePath: '/users/:id' }), { handle: () => of({}) })
+              .intercept(
+                makeContext({ path: rawPath, routePath: '/users/:id' }),
+                { handle: () => of({}) },
+              )
               .subscribe({ complete: resolve });
           }),
       ),
@@ -131,7 +156,9 @@ describe('ResponseTimeInterceptor', () => {
     });
 
     await new Promise<void>((resolve) => {
-      interceptor.intercept(ctx, { handle: () => of({}) }).subscribe({ complete: resolve });
+      interceptor
+        .intercept(ctx, { handle: () => of({}) })
+        .subscribe({ complete: resolve });
     });
     await flushImmediate();
 
@@ -139,12 +166,16 @@ describe('ResponseTimeInterceptor', () => {
       'Slow request detected',
       expect.objectContaining({ endpoint: '/api/slow' }),
     );
-    expect(loggerWarnSpy.mock.calls[0][1].responseTime).toBeGreaterThan(SLOW_REQUEST_THRESHOLD_MS);
+    expect(loggerWarnSpy.mock.calls[0][1].responseTime).toBeGreaterThan(
+      SLOW_REQUEST_THRESHOLD_MS,
+    );
   });
 
   it('fast_request_no_warning — no warn below threshold', async () => {
     await new Promise<void>((resolve) => {
-      interceptor.intercept(makeContext(), { handle: () => of({}) }).subscribe({ complete: resolve });
+      interceptor
+        .intercept(makeContext(), { handle: () => of({}) })
+        .subscribe({ complete: resolve });
     });
     await flushImmediate();
 
@@ -154,7 +185,9 @@ describe('ResponseTimeInterceptor', () => {
   it('middleware_disabled_by_config — RESPONSE_TIME_ENABLED=false skips all recording', async () => {
     process.env.RESPONSE_TIME_ENABLED = 'false';
     await new Promise<void>((resolve) => {
-      interceptor.intercept(makeContext(), { handle: () => of({}) }).subscribe({ complete: resolve });
+      interceptor
+        .intercept(makeContext(), { handle: () => of({}) })
+        .subscribe({ complete: resolve });
     });
     await flushImmediate();
 
@@ -165,22 +198,34 @@ describe('ResponseTimeInterceptor', () => {
   it('concurrent_requests_no_race — 50 concurrent requests all recorded', async () => {
     const N = 50;
     await Promise.all(
-      Array.from({ length: N }, (_, i) =>
-        new Promise<void>((resolve) => {
-          interceptor
-            .intercept(makeContext({ path: `/api/item/${i}`, routePath: '/api/item/:id' }), { handle: () => of({}) })
-            .subscribe({ complete: resolve });
-        }),
+      Array.from(
+        { length: N },
+        (_, i) =>
+          new Promise<void>((resolve) => {
+            interceptor
+              .intercept(
+                makeContext({
+                  path: `/api/item/${i}`,
+                  routePath: '/api/item/:id',
+                }),
+                { handle: () => of({}) },
+              )
+              .subscribe({ complete: resolve });
+          }),
       ),
     );
     await flushImmediate();
 
-    expect(mockPerformanceMonitor.recordRequestMetrics).toHaveBeenCalledTimes(N);
+    expect(mockPerformanceMonitor.recordRequestMetrics).toHaveBeenCalledTimes(
+      N,
+    );
   });
 
   it('x_response_time_header_format — duration_ms is a non-negative integer', async () => {
     await new Promise<void>((resolve) => {
-      interceptor.intercept(makeContext(), { handle: () => of({}) }).subscribe({ complete: resolve });
+      interceptor
+        .intercept(makeContext(), { handle: () => of({}) })
+        .subscribe({ complete: resolve });
     });
     await flushImmediate();
 
@@ -192,7 +237,10 @@ describe('ResponseTimeInterceptor', () => {
 });
 
 // ── shared mocks ──────────────────────────────────────────────────────────────
-const sharedMockMetrics = { recordHttpRequest: jest.fn(), recordHttpDuration: jest.fn() };
+const sharedMockMetrics = {
+  recordHttpRequest: jest.fn(),
+  recordHttpDuration: jest.fn(),
+};
 const sharedMockAlert = { handleAlert: jest.fn() };
 
 // ── PerformanceMonitorService — analysis_snapshot_correctness ─────────────────
@@ -252,7 +300,9 @@ describe('PerformanceController — internal_metrics_endpoint_auth', () => {
       .overrideGuard(JwtAuthGuard)
       .useValue({
         canActivate(ctx: ExecutionContext) {
-          const req = ctx.switchToHttp().getRequest<{ headers: Record<string, string> }>();
+          const req = ctx
+            .switchToHttp()
+            .getRequest<{ headers: Record<string, string> }>();
           return req.headers['authorization'] === 'Bearer valid-admin-token';
         },
       })
@@ -269,7 +319,9 @@ describe('PerformanceController — internal_metrics_endpoint_auth', () => {
   afterAll(() => app.close());
 
   it('returns 401 without auth token', async () => {
-    const res = await request(app.getHttpServer()).get('/api/performance/response-times');
+    const res = await request(app.getHttpServer()).get(
+      '/api/performance/response-times',
+    );
     expect([401, 403]).toContain(res.status);
   });
 

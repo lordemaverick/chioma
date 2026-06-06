@@ -42,10 +42,7 @@ export class ApiVersionMiddleware implements NestMiddleware {
     if (config.status === 'deprecated') {
       res.setHeader(API_DEPRECATED_HEADER, 'true');
       if (config.deprecationDate) {
-        res.setHeader(
-          API_SUNSET_HEADER,
-          config.sunsetAt?.toISOString() ?? '',
-        );
+        res.setHeader(API_SUNSET_HEADER, config.sunsetAt?.toISOString() ?? '');
       }
       if (config.migrationHint) {
         res.setHeader(API_MIGRATION_HINT_HEADER, config.migrationHint);
