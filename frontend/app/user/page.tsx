@@ -100,6 +100,12 @@ export default function UserDashboardOverview() {
   const { data: paymentsData } = usePayments({ limit: 50 });
   const apiPayments = paymentsData?.data ?? [];
 
+  const activeAgreement = apiAgreements.find((a) => a.status === 'active') ?? null;
+  const nextPaymentAmount = activeAgreement?.monthlyRent
+    ? `${activeAgreement.monthlyRent.toLocaleString()}`
+    : mockAgreements[0].amount;
+  const nextPaymentProperty = activeAgreement?.displayTitle ?? mockAgreements[0].property;
+
   const agreements =
     apiAgreements.length > 0
       ? apiAgreements.map((a) => ({
