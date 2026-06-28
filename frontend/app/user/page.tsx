@@ -100,20 +100,38 @@ export default function UserDashboardOverview() {
   const { data: paymentsData } = usePayments({ limit: 50 });
   const apiPayments = paymentsData?.data ?? [];
 
-  const activeAgreement = apiAgreements.find((a) => a.status === 'active') ?? null;
+  const activeAgreement =
+    apiAgreements.find((a) => a.status === 'active') ?? null;
 
-  const leaseStart = activeAgreement?.startDate ? new Date(activeAgreement.startDate) : null;
-  const leaseEnd = activeAgreement?.endDate ? new Date(activeAgreement.endDate) : null;
-  const leaseMonthsTotal = leaseStart && leaseEnd
-    ? Math.round((leaseEnd.getTime() - leaseStart.getTime()) / (1000 * 60 * 60 * 24 * 30.44))
-    : 12;
+  const leaseStart = activeAgreement?.startDate
+    ? new Date(activeAgreement.startDate)
+    : null;
+  const leaseEnd = activeAgreement?.endDate
+    ? new Date(activeAgreement.endDate)
+    : null;
+  const leaseMonthsTotal =
+    leaseStart && leaseEnd
+      ? Math.round(
+          (leaseEnd.getTime() - leaseStart.getTime()) /
+            (1000 * 60 * 60 * 24 * 30.44),
+        )
+      : 12;
   const leaseMonthsElapsed = leaseStart
-    ? Math.max(0, Math.round((Date.now() - leaseStart.getTime()) / (1000 * 60 * 60 * 24 * 30.44)))
+    ? Math.max(
+        0,
+        Math.round(
+          (Date.now() - leaseStart.getTime()) / (1000 * 60 * 60 * 24 * 30.44),
+        ),
+      )
     : 5;
-  const leaseMonthsRemaining = Math.max(0, leaseMonthsTotal - leaseMonthsElapsed);
-  const leaseProgressPct = leaseMonthsTotal > 0
-    ? Math.min(100, Math.round((leaseMonthsElapsed / leaseMonthsTotal) * 100))
-    : 60;
+  const leaseMonthsRemaining = Math.max(
+    0,
+    leaseMonthsTotal - leaseMonthsElapsed,
+  );
+  const leaseProgressPct =
+    leaseMonthsTotal > 0
+      ? Math.min(100, Math.round((leaseMonthsElapsed / leaseMonthsTotal) * 100))
+      : 60;
   const currentYear = new Date().getFullYear();
   const totalPaidThisYear = apiPayments
     .filter((p) => {
@@ -121,24 +139,25 @@ export default function UserDashboardOverview() {
       return year === currentYear && p.status?.toLowerCase() === 'completed';
     })
     .reduce((sum, p) => sum + (p.amount ?? 0), 0);
-  const rentPaidDisplay = totalPaidThisYear > 0
-    ? `$${totalPaidThisYear.toLocaleString()}`
-    : '$8,400';
+  const rentPaidDisplay =
+    totalPaidThisYear > 0 ? `$${totalPaidThisYear.toLocaleString()}` : '$8,400';
 
   const nextPaymentAmount = activeAgreement?.monthlyRent
     ? `${activeAgreement.monthlyRent.toLocaleString()}`
     : mockAgreements[0].amount;
-  const nextPaymentProperty = activeAgreement?.displayTitle ?? mockAgreements[0].property;
+  const nextPaymentProperty =
+    activeAgreement?.displayTitle ?? mockAgreements[0].property;
 
-  const previewPayments = apiPayments.length > 0
-    ? apiPayments.slice(0, 2).map((p) => ({
-        id: p.id,
-        property: p.agreement?.property?.title ?? 'Rental payment',
-        amount: `$${(p.amount ?? 0).toLocaleString()}`,
-        date: p.createdAt ? new Date(p.createdAt).toLocaleDateString() : '—',
-        previewImage: DASHBOARD_IMAGE_FALLBACK,
-      }))
-    : dashboardPayments;
+  const previewPayments =
+    apiPayments.length > 0
+      ? apiPayments.slice(0, 2).map((p) => ({
+          id: p.id,
+          property: p.agreement?.property?.title ?? 'Rental payment',
+          amount: `$${(p.amount ?? 0).toLocaleString()}`,
+          date: p.createdAt ? new Date(p.createdAt).toLocaleDateString() : '—',
+          previewImage: DASHBOARD_IMAGE_FALLBACK,
+        }))
+      : dashboardPayments;
 
   const agreements =
     apiAgreements.length > 0

@@ -64,7 +64,10 @@ export default function UserDashboardLayout({
 
             {/* Right Section - Search, Wallet, Profile */}
             <div className="flex items-center space-x-3 sm:space-x-4">
-              <form onSubmit={handleSearch} className="hidden md:flex relative w-64">
+              <form
+                onSubmit={handleSearch}
+                className="hidden md:flex relative w-64"
+              >
                 <Search
                   className="absolute left-3 top-1/2 -translate-y-1/2 text-blue-300/60"
                   size={18}

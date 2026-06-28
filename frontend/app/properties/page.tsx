@@ -86,8 +86,13 @@ export default function PropertyListing() {
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && displayedCount < filteredProperties.length) {
-          setDisplayedCount((prev) => Math.min(prev + 12, filteredProperties.length));
+        if (
+          entries[0].isIntersecting &&
+          displayedCount < filteredProperties.length
+        ) {
+          setDisplayedCount((prev) =>
+            Math.min(prev + 12, filteredProperties.length),
+          );
         }
       },
       { threshold: 0.1 },

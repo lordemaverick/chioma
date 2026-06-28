@@ -5,7 +5,14 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import Logo from '@/components/Logo';
-import { Menu, X, User, LogOut, LayoutDashboard, ChevronDown } from 'lucide-react';
+import {
+  Menu,
+  X,
+  User,
+  LogOut,
+  LayoutDashboard,
+  ChevronDown,
+} from 'lucide-react';
 import { NAV_LINKS } from '@/constants/navigation';
 import { useAuth } from '@/store/authStore';
 import toast from 'react-hot-toast';
@@ -45,7 +52,10 @@ const Navbar = ({ theme = 'dark' }: NavbarProps) => {
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
+      if (
+        userMenuRef.current &&
+        !userMenuRef.current.contains(e.target as Node)
+      ) {
         setIsUserMenuOpen(false);
       }
     };
@@ -77,7 +87,10 @@ const Navbar = ({ theme = 'dark' }: NavbarProps) => {
       suppressHydrationWarning
     >
       <div className="container mx-auto px-4 sm:px-6 flex items-center justify-between">
-        <Logo size="md" textClassName="text-xl font-bold text-white tracking-tight" />
+        <Logo
+          size="md"
+          textClassName="text-xl font-bold text-white tracking-tight"
+        />
 
         <div className="hidden md:flex items-center space-x-8">
           {NAV_LINKS.map((link) => {
@@ -175,7 +188,10 @@ const Navbar = ({ theme = 'dark' }: NavbarProps) => {
                 Get started
               </Link>
               {!walletAddress && (
-                <WalletConnectButton className="px-4 py-2 text-sm" buttonText="Connect Wallet" />
+                <WalletConnectButton
+                  className="px-4 py-2 text-sm"
+                  buttonText="Connect Wallet"
+                />
               )}
             </>
           )}
@@ -248,7 +264,10 @@ const Navbar = ({ theme = 'dark' }: NavbarProps) => {
                     Get started
                   </Link>
                   <div onClick={() => setIsMobileMenuOpen(false)}>
-                    <WalletConnectButton className="w-full px-6 py-3" buttonText="Connect Wallet" />
+                    <WalletConnectButton
+                      className="w-full px-6 py-3"
+                      buttonText="Connect Wallet"
+                    />
                   </div>
                 </>
               )}
