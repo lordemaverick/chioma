@@ -235,12 +235,12 @@ export default function UserDashboardOverview() {
             </p>
             <div className="flex items-baseline gap-2 mt-1">
               <h3 className="text-3xl font-bold tracking-tight text-white">
-                $1,200
+                {nextPaymentAmount}
               </h3>
               <span className="text-sm text-blue-300/40">/mo</span>
             </div>
             <p className="text-sm text-blue-200/60 mt-2 truncate">
-              Sunset Apartments, Unit 4B
+              {nextPaymentProperty}
             </p>
           </div>
         </div>
