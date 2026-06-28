@@ -19,6 +19,7 @@ import { TenantOnboardingBanner } from '@/components/user/TenantOnboardingBanner
 import { useAuth } from '@/store/authStore';
 import { useRoleRedirect } from '@/hooks/useRoleRedirect';
 import { useUserAgreements } from '@/lib/query/hooks/use-agreements';
+import { usePayments } from '@/lib/query/hooks/use-payments';
 import { useModal } from '@/contexts/ModalContext';
 import { apiClient } from '@/lib/api-client';
 import type { AgreementSigningData } from '@/components/modals/types';
@@ -96,6 +97,8 @@ export default function UserDashboardOverview() {
   const router = useRouter();
   const { loading } = useAuth();
   const { data: apiAgreements = [] } = useUserAgreements();
+  const { data: paymentsData } = usePayments({ limit: 50 });
+  const apiPayments = paymentsData?.data ?? [];
 
   const agreements =
     apiAgreements.length > 0
