@@ -292,7 +292,7 @@ export default function UserDashboardOverview() {
                   Rent Paid This Year
                 </p>
                 <h3 className="text-2xl font-bold tracking-tight text-white mt-1">
-                  $8,400
+                  {rentPaidDisplay}
                 </h3>
               </div>
             </div>
@@ -425,7 +425,7 @@ export default function UserDashboardOverview() {
             </Link>
           </div>
           <div className="space-y-3">
-            {dashboardPayments.map((payment) => (
+            {previewPayments.map((payment) => (
               <div
                 key={payment.id}
                 className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/5 p-3"
