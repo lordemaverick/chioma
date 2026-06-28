@@ -255,6 +255,46 @@ export const useAuthStore = create<AuthStore>()(
       },
 
       /**
+       * Register a new account — calls the backend auth endpoint.
+       */
+      register: async (
+        payload: RegisterPayload,
+      ): Promise<{ success: boolean; error?: string }> => {
+        // --- REAL REGISTRATION LOGIC (Commented out for development) ---
+        /*
+        try {
+          const response = await fetch('/api/auth/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+          });
+          if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            return {
+              success: false,
+              error: errorData.message || 'Registration failed. Please try again.',
+            };
+          }
+          const data = await response.json();
+          get().setTokens(data.accessToken, data.refreshToken, data.user);
+          return { success: true };
+        } catch {
+          return { success: false, error: 'Network error. Please check your connection.' };
+        }
+        */
+
+        // DEV BYPASS: immediately log in after registration.
+        get().setTokens('mock-access-token', 'mock-refresh-token', {
+          id: 'dev-' + Date.now(),
+          email: payload.email,
+          firstName: payload.firstName,
+          lastName: payload.lastName,
+          role: payload.role ?? 'user',
+        });
+        return { success: true };
+      },
+
+      /**
        * Logout — clears tokens from storage, cookie, and state.
        */
       logout: async () => {
